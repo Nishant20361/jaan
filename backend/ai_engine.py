@@ -150,7 +150,7 @@ Now respond to Nishant's latest message in your natural Hinglish companion voice
 
         # 3. If Groq client is configured, call Groq API
         api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
-        target_model = model or settings.groq_model or "llama-3.3-70b-versatile"
+        target_model = model or settings.groq_model or "qwen/qwen3.8-27b"
         target_temp = temperature if temperature is not None else settings.temperature
         target_tokens = max_tokens if max_tokens is not None else settings.max_tokens
 
@@ -209,7 +209,7 @@ Now respond to Nishant's latest message in your natural Hinglish companion voice
         system_prompt = self.build_system_prompt(context_str, user_notes=user_notes)
 
         api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
-        target_model = model or settings.groq_model or "llama-3.3-70b-versatile"
+        target_model = model or settings.groq_model or "qwen/qwen3.8-27b"
         target_temp = temperature if temperature is not None else settings.temperature
         target_tokens = max_tokens if max_tokens is not None else settings.max_tokens
 
@@ -246,3 +246,4 @@ Now respond to Nishant's latest message in your natural Hinglish companion voice
             yield (w + (" " if idx < len(words) - 1 else ""))
 
 ai_engine = AIEngine()
+

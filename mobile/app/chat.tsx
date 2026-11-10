@@ -747,3 +747,4 @@ const styles = StyleSheet.create({
     height: width * 0.85,
   },
 });
+

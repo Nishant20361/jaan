@@ -20,7 +20,7 @@ export default function SettingsScreen() {
 
   const [backendUrl, setBackendUrl] = useState(api.getBaseUrl());
   const [groqKey, setGroqKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile');
+  const [selectedModel, setSelectedModel] = useState('qwen/qwen3.8-27b');
   const [temperature, setTemperature] = useState('0.7');
   const [responseLength, setResponseLength] = useState('Medium');
   const [hinglishStyle, setHinglishStyle] = useState('Natural');
@@ -114,9 +114,9 @@ export default function SettingsScreen() {
 
           <View style={styles.optionsList}>
             {[
-              { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Deeply Romantic & Nuanced)' },
-              { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Ultra Fast & Lightweight)' },
-              { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (High Context & Balanced)' },
+              { id: 'qwen/qwen3.8-27b', label: 'Qwen 3.8 27B (Recommended • Fast & Natural Hinglish)' },
+              { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (Deep Reasoning & Nuance)' },
+              { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Lightweight & Instant)' },
             ].map((m) => (
               <TouchableOpacity
                 key={m.id}
@@ -476,3 +476,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 });
+

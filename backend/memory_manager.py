@@ -124,3 +124,4 @@ class MemoryManager:
             conn.commit()
 
 memory_manager = MemoryManager()
+

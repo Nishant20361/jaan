@@ -326,9 +326,9 @@ def get_settings():
         "temperature": settings.temperature,
         "max_tokens": settings.max_tokens,
         "available_models": [
-            {"id": "llama-3.3-70b-versatile", "name": "Llama 3.3 70B (Recommended for deep romantic roleplay)"},
-            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B (Ultra fast, lightweight)"},
-            {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B (Balanced)"}
+            {"id": "qwen/qwen3.8-27b", "name": "Qwen 3.8 27B (Recommended • Fast & Natural Hinglish)"},
+            {"id": "openai/gpt-oss-120b", "name": "GPT-OSS 120B (Deep Reasoning & Nuance)"},
+            {"id": "openai/gpt-oss-20b", "name": "GPT-OSS 20B (Ultra Fast)"}
         ]
     }
 

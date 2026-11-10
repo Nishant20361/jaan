@@ -89,3 +89,4 @@ cd mobile
 - Your original Messenger export (`messages/`) remains 100% untouched.
 - All messages and photos are served locally from your machine.
 - The companion is explicitly framed as an AI companion inspired by memories, not pretending to be a living person messaging live.
+
