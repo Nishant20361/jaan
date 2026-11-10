@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+mobile/node_modules/
+.pnpm-store/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Database & Local Cache
+data/jaan_app.db
+*.sqlite
+.DS_Store
+
+# Expo / Metro
+.expo/
+mobile/.expo/
+web-build/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

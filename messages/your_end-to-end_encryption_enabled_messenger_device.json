@@ -1,0 +1,83 @@
+[
+  {
+    "timestamp": 1619448237,
+    "media": [
+      
+    ],
+    "label_values": [
+      {
+        "label": "Registration ID associated with this mobile device",
+        "value": "XdNY8rsH"
+      },
+      {
+        "label": "Unique ID",
+        "value": "AVFP3253GZXQEVCEASMQYXIR5B3B7R3OMEGXO6G7UJ4KRBEM4ZXSU"
+      },
+      {
+        "label": "The name that you have given this device",
+        "value": ""
+      },
+      {
+        "label": "User agent",
+        "value": "[FBAN/Orca-Android;FBAV/298.0.0.14.118;FBBV/271125238;FBDM/{density=2.0,width=720,height=1184};FBLC/en_US;FBCR/Jio 4G;FBMF/motorola;FBBD/motorola;FBPN/com.facebook.orca;FBDV/Moto E (4) Plus;FBSV/7.1.1;FBLR/0;FBBK/1;FBCA/armeabi-v7a:armeabi;]"
+      },
+      {
+        "label": "Last time that device was enabled or disabled",
+        "timestamp_value": 1622061747
+      },
+      {
+        "label": "Last time device used",
+        "timestamp_value": 0
+      },
+      {
+        "label": "Status",
+        "value": "Not enabled"
+      },
+      {
+        "label": "Name",
+        "value": "Motorola Moto E (4th gen) Plus"
+      }
+    ],
+    "fbid": "292181962436426"
+  },
+  {
+    "timestamp": 1585646959,
+    "media": [
+      
+    ],
+    "label_values": [
+      {
+        "label": "Registration ID associated with this mobile device",
+        "value": ""
+      },
+      {
+        "label": "Unique ID",
+        "value": "AWGOERDHIMAIOC65RY7IM5Z7ZYK2ING2CS6CNKMFNKYUCM6ZGQXTO"
+      },
+      {
+        "label": "The name that you have given this device",
+        "value": ""
+      },
+      {
+        "label": "User agent",
+        "value": "[FBAN/Orca-Android;FBAV/258.0.0.18.119;FBBV/206559656;FBDM/{density=2.0,width=720,height=1344};FBLC/en_GB;FBCR/Jio 4G;FBMF/Xiaomi;FBBD/xiaomi;FBPN/com.facebook.orca;FBDV/Redmi 6A;FBSV/9;FBLR/0;FBBK/1;FBCA/armeabi-v7a:armeabi;]"
+      },
+      {
+        "label": "Last time that device was enabled or disabled",
+        "timestamp_value": 1589378678
+      },
+      {
+        "label": "Last time device used",
+        "timestamp_value": 0
+      },
+      {
+        "label": "Status"
+      },
+      {
+        "label": "Name",
+        "value": "Xiaomi Redmi 6A"
+      }
+    ],
+    "fbid": "108381897483101"
+  }
+]

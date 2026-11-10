@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec /Users/nishantkumar/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 "$@"
