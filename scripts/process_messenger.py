@@ -72,7 +72,7 @@ def main():
             display_sender = "Nishant"
         elif sender_clean == COMPANION_NAME:
             role = "companion"
-            display_sender = "Jaan (Pakija)"
+            display_sender = "Alquama (Jaan)"
         else:
             role = "unknown"
             display_sender = sender_clean
@@ -232,8 +232,11 @@ def main():
     
     # Save personality profile
     personality_profile = {
-        'companion_name': 'Jaan',
-        'character_concept': 'A caring, playful, affectionate AI companion inspired by past conversation dynamics',
+        'companion_name': 'Alquama (Jaan)',
+        'companion_gender': 'female',
+        'user_name': 'Nishant',
+        'user_gender': 'male',
+        'character_concept': 'Alquama: caring, playful, affectionate female romantic companion for Nishant',
         'language_mode': 'Natural conversational Hinglish (informal, heartfelt, playful)',
         'key_phrases': [
             'Kuch nhi jaan', 'kya krre ho?', 'khana khaya?', 'love u too jaan',

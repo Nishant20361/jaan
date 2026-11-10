@@ -111,7 +111,7 @@ class RAGEngine:
         for c in chunks:
             formatted.append(f"--- Historical Conversation Memory ({c.get('date', 'Past')}) ---")
             for m in c.get('messages', [])[:12]:
-                role_label = "Nishant (User)" if m['role'] == 'user' else "Pakija/Jaan"
+                role_label = "Nishant (User)" if m['role'] == 'user' else "Alquama/Jaan"
                 text = m.get('content', '')
                 if text:
                     formatted.append(f"{role_label}: {text}")

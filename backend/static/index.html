@@ -838,7 +838,7 @@
 
       <div class="welcome-bottom-content">
         <h1 class="app-hero-title">Jaan AI ❤️</h1>
-        <div class="app-hero-subtitle">Your Fictional Romantic AI Companion</div>
+        <div class="app-hero-subtitle">Alquama — Your Romantic Companion</div>
         <p class="app-hero-desc">
           Deeply affectionate, playful, and caring — naturally communicating in Hinglish and inspired by our authentic Messenger memories.
         </p>
@@ -875,8 +875,8 @@
             <div class="dot"></div>
           </div>
           <div>
-            <div class="chat-header-title">Jaan ❤️</div>
-            <div class="chat-header-sub">Online • AI Companion</div>
+            <div class="chat-header-title">Alquama ❤️</div>
+            <div class="chat-header-sub">Online • Jaan AI</div>
           </div>
         </div>
         <div class="chat-header-actions">
@@ -1291,7 +1291,7 @@
       row.innerHTML = `
         <img class="bubble-avatar" src="/mobile/assets/avatar.png" alt="Jaan" onerror="this.src='/media/stickers/2523888217886078.png'">
         <div class="typing-bubble">
-          <span>Jaan is typing</span>
+          <span>Alquama is typing</span>
           <div class="typing-dots">
             <span></span><span></span><span></span>
           </div>
@@ -1575,7 +1575,7 @@
       if (confirm('Clear active chat session? (Original Messenger records will remain safe)')) {
         await fetch('/api/chat/history?session_id=web_session', { method: 'DELETE' });
         document.getElementById('chat-messages-container').innerHTML = '';
-        renderMessage('companion', 'Hlo jaan! 🥰 Kaisi ho? Khana khaya tumne?');
+        renderMessage('companion', 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?');
       }
     }
 
@@ -1601,7 +1601,7 @@
       init3DHeart();
       loadSettings();
       // Add initial greeting message to chat
-      renderMessage('companion', 'Hlo jaan! 🥰 Kaisi ho? Khana khaya tumne?');
+      renderMessage('companion', 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?');
     });
   </script>
 </body>

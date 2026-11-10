@@ -43,7 +43,7 @@ export default function ChatScreen() {
     const initialGreeting: MessageItem = {
       id: 'init-1',
       role: 'companion',
-      content: 'Hlo jaan! 🥰 Kaisi ho? Khana khaya tumne?',
+      content: 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages([initialGreeting]);
@@ -249,8 +249,8 @@ export default function ChatScreen() {
             <View style={styles.miniOnlineDot} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>Jaan ❤️</Text>
-            <Text style={styles.headerSubtitle}>Online • AI Companion</Text>
+            <Text style={styles.headerTitle}>Alquama ❤️</Text>
+            <Text style={styles.headerSubtitle}>Online • Jaan AI</Text>
           </View>
         </TouchableOpacity>
 
@@ -288,7 +288,7 @@ export default function ChatScreen() {
                 style={styles.bubbleAvatar}
               />
               <View style={styles.typingBubble}>
-                <Text style={styles.typingLabel}>Jaan is typing</Text>
+                <Text style={styles.typingLabel}>Alquama is typing</Text>
                 <Animated.View
                   style={[
                     styles.typingDot,
