@@ -97,11 +97,37 @@ class MemoryManager:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, role, content, media_uri, media_type, created_at FROM chat_history WHERE session_id = ? ORDER BY id ASC LIMIT ?",
+                """
+                SELECT id, role, content, media_uri, media_type, created_at
+                FROM (
+                    SELECT id, role, content, media_uri, media_type, created_at
+                    FROM chat_history
+                    WHERE session_id = ?
+                    ORDER BY id DESC
+                    LIMIT ?
+                ) recent
+                ORDER BY id ASC
+                """,
                 (session_id, limit)
             )
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
+
+    def get_recent_media_uris(self, session_id: str = "default", media_type: Optional[str] = None, limit: int = 10) -> List[str]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            if media_type:
+                cursor.execute(
+                    "SELECT media_uri FROM chat_history WHERE session_id = ? AND media_type = ? AND media_uri IS NOT NULL ORDER BY id DESC LIMIT ?",
+                    (session_id, media_type, limit)
+                )
+            else:
+                cursor.execute(
+                    "SELECT media_uri FROM chat_history WHERE session_id = ? AND media_uri IS NOT NULL ORDER BY id DESC LIMIT ?",
+                    (session_id, limit)
+                )
+            rows = cursor.fetchall()
+            return [row["media_uri"] for row in rows if row["media_uri"]]
 
     def clear_chat_history(self, session_id: str = "default") -> int:
         with self._get_connection() as conn:

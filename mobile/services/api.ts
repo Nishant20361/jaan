@@ -1,5 +1,5 @@
 /**
- * API Client for Jaan AI Mobile Application
+ * API Client for Alquama Chat Application
  */
 
 export interface MessageItem {
@@ -9,27 +9,26 @@ export interface MessageItem {
   timestamp?: string;
   media_uri?: string;
   media_type?: 'photo' | 'sticker' | 'gif';
+  receipt?: 'sent' | 'seen';
   is_unsent?: boolean;
 }
 
 export interface ChatResponse {
   response: string;
+  photo_url?: string | null;
+  sticker_url?: string | null;
+  seen_delay_ms?: number;
+  typing_delay_ms?: number;
   source: string;
   model: string;
   retrieved_chunks: number[];
   timestamp: string;
 }
 
-export interface MemoryStats {
-  total_messages: number;
-  total_chunks: number;
-  companion_name: string;
-  date_range: { earliest?: string; latest?: string };
-  top_emojis: string[];
-  key_phrases: string[];
-  total_photos: number;
-  total_stickers: number;
-  total_gifs: number;
+export interface GreetingResponse {
+  greeting: string;
+  avatar_url: string;
+  name: string;
 }
 
 export interface MediaItem {
@@ -39,21 +38,8 @@ export interface MediaItem {
   timestamp?: number;
 }
 
-export interface MemoryNote {
-  id: number;
-  title: string;
-  content: string;
-  tag: string;
-  created_at: string;
-}
-
 class ApiService {
   private baseUrl: string = 'http://localhost:8000';
-
-  constructor() {
-    // Check if running on Android Emulator where localhost is 10.0.2.2
-    // User can customize baseUrl anytime in Settings screen
-  }
 
   public setBaseUrl(url: string) {
     this.baseUrl = url.replace(/\/$/, '');
@@ -61,6 +47,14 @@ class ApiService {
 
   public getBaseUrl(): string {
     return this.baseUrl;
+  }
+
+  public resolveMediaUrl(path?: string | null): string | undefined {
+    if (!path) return undefined;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    return `${this.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 
   public async checkHealth(): Promise<boolean> {
@@ -72,11 +66,31 @@ class ApiService {
     }
   }
 
+  public async getGreeting(): Promise<GreetingResponse | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/chat/greeting`);
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    return null;
+  }
+
+  public async getHistory(sessionId: string = 'default', limit: number = 50): Promise<any[]> {
+    try {
+      const res = await fetch(
+        `${this.baseUrl}/api/chat/history?session_id=${encodeURIComponent(sessionId)}&limit=${limit}`
+      );
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    return [];
+  }
+
   public async sendMessage(
     message: string,
     sessionId: string = 'default',
     model?: string,
-    temperature?: number
+    temperature?: number,
+    mediaUri?: string,
+    mediaType?: string
   ): Promise<ChatResponse> {
     try {
       const res = await fetch(`${this.baseUrl}/api/chat`, {
@@ -85,6 +99,8 @@ class ApiService {
         body: JSON.stringify({
           message,
           session_id: sessionId,
+          media_uri: mediaUri || null,
+          media_type: mediaType || null,
           model,
           temperature,
         }),
@@ -95,39 +111,9 @@ class ApiService {
       }
       return await res.json();
     } catch (err) {
-      console.warn('API error, using local companion fallback:', err);
-      // Graceful offline companion fallback in authentic Hinglish style
+      console.warn('API error, using local fallback:', err);
       return this.getLocalFallback(message);
     }
-  }
-
-  public async getMemoryStats(): Promise<MemoryStats | null> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/memories/stats`);
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return null;
-  }
-
-  public async getChunks(page: number = 1, pageSize: number = 10, query?: string) {
-    try {
-      const url = query
-        ? `${this.baseUrl}/api/memories/chunks?page=${page}&page_size=${pageSize}&query=${encodeURIComponent(query)}`
-        : `${this.baseUrl}/api/memories/chunks?page=${page}&page_size=${pageSize}`;
-      const res = await fetch(url);
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return { chunks: [], total: 0 };
-  }
-
-  public async searchMessages(query: string, limit: number = 40) {
-    try {
-      const res = await fetch(
-        `${this.baseUrl}/api/memories/search?q=${encodeURIComponent(query)}&limit=${limit}`
-      );
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return { results: [], count: 0 };
   }
 
   public async getPhotos(): Promise<MediaItem[]> {
@@ -146,48 +132,9 @@ class ApiService {
     return [];
   }
 
-  public async getGifs(): Promise<MediaItem[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/media/gifs`);
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return [];
-  }
-
-  public async getNotes(): Promise<MemoryNote[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/memories/notes`);
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return [];
-  }
-
-  public async addNote(title: string, content: string, tag: string = 'general'): Promise<MemoryNote | null> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/memories/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, tag }),
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return null;
-  }
-
-  public async deleteNote(id: number): Promise<boolean> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/memories/notes/${id}`, {
-        method: 'DELETE',
-      });
-      return res.ok;
-    } catch (e) {
-      return false;
-    }
-  }
-
   public async clearHistory(sessionId: string = 'default'): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl}/api/chat/history?session_id=${sessionId}`, {
+      const res = await fetch(`${this.baseUrl}/api/chat/history?session_id=${encodeURIComponent(sessionId)}`, {
         method: 'DELETE',
       });
       return res.ok;
@@ -217,26 +164,46 @@ class ApiService {
   }
 
   private getLocalFallback(msg: string): ChatResponse {
-    const q = msg.toLowerCase();
-    let text = "Kuch nhi jaan 😂 tum batao kya chal raha hai?";
-    if (q.includes("khana") || q.includes("lunch") || q.includes("dinner")) {
-      text = "Haan ji jaan humne kha liya 🥰 tumne khaya ki nahi? Sach bolna!";
-    } else if (q.includes("love") || q.includes("pyar") || q.includes("miss") || q.includes("yaad")) {
-      text = "I love you too mra jaan! Bht bht sara ❤️😘 call karo na jab free ho!";
-    } else if (q.includes("kaha") || q.includes("kha ho")) {
-      text = "Ghar pe hi hain jaan 🥰 tum kaha ho? Theek ho na?";
-    } else if (q.includes("hi") || q.includes("hello") || q.includes("hlo")) {
-      text = "Hlo jaan! ❤️ bolo na kya hua?";
+    const q = (msg || '').toLowerCase().trim();
+    const isEnglish =
+      /\b(the|is|are|was|were|have|had|missed|today|tonight|babe|baby|how are you|what are you|love you)\b/.test(q) &&
+      !/\b(kya|kr|kar|hai|ho|hu|ni|nhi|tm|tum|hm|hum|khana|khayi|bhejo|btao|yaad)\b/.test(q);
+
+    let text = 'Acha jaan 😂 aur btao kya chal raha hai aaj?';
+    if (/\b(photo|phto|pic|selfie)\b/.test(q)) {
+      text = isEnglish
+        ? 'Network is a little slow right now babe, ask me again in a second 😘'
+        : 'Abhi network thoda slow lag rha hai jaan, ek second me phir btao ❤️';
+    } else if (isEnglish) {
+      if (/(kiss|hug|love|miss)/.test(q)) {
+        text = 'I love you so much jaan ❤️ wish you were right here beside me 😘';
+      } else {
+        text = 'Tell me everything babe ❤️ I am right here with you 😘';
+      }
+    } else if (q.includes('khana khai') || q.includes('khana khayi') || q.includes('khayi')) {
+      text = 'Haa jaan kha li 🥰 tumne khaya kya?';
+    } else if (q.includes('khana') || q.includes('lunch') || q.includes('dinner')) {
+      text = 'Haa jaan kha liya humne 🥰 aur btao kya krre ho?';
+    } else if (/(kiss|chumma|paas|touch|badmash)/.test(q)) {
+      text = 'Mmwaah 😘 paas aao na jaan, bahut yaad aa rhi thi 💕';
+    } else if (/(love|pyar|miss|yaad)/.test(q)) {
+      text = 'Love u too mra jaan ❤️ bahut yaad aati hai tumhari 🥺😘';
+    } else if (/(kya kar|kya kr)/.test(q)) {
+      text = 'Kuch ni jaan, bas tumhara hi wait kr rhi thi 🥰 tum btao?';
+    } else if (/^(hi|hello|hlo|hey)/.test(q)) {
+      text = 'Hlo mra jaan 😘 kha busy the itni der se?';
     }
+
     return {
       response: text,
-      source: "offline_companion_engine",
-      model: "local-jaan",
+      source: 'offline_fallback',
+      model: 'local-alquama',
       retrieved_chunks: [],
+      seen_delay_ms: 480,
+      typing_delay_ms: 950,
       timestamp: new Date().toISOString(),
     };
   }
 }
 
 export const api = new ApiService();
-

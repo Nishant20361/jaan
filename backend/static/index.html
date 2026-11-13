@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jaan AI ❤️ — Premium 3D Romantic AI Companion</title>
+  <title>Alquama ❤️</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
-  <!-- Three.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     :root {
       --bg-midnight: #0b0412;
       --bg-card: rgba(28, 12, 44, 0.72);
-      --bg-card-hover: rgba(38, 18, 58, 0.85);
       --primary-pink: #ff3b88;
       --primary-gradient: linear-gradient(135deg, #ff3b88 0%, #d81b60 50%, #9c27b0 100%);
       --accent-purple: #a824e8;
@@ -23,8 +21,7 @@
       --border-glow: rgba(255, 90, 160, 0.28);
       --border-bright: rgba(255, 59, 136, 0.65);
       --user-bubble: linear-gradient(135deg, #ff3b88, #d81b60);
-      --ai-bubble: rgba(34, 14, 52, 0.88);
-      --shadow-glow: 0 8px 32px rgba(255, 59, 136, 0.28);
+      --companion-bubble: rgba(34, 14, 52, 0.88);
     }
 
     * {
@@ -46,7 +43,6 @@
       align-items: center;
     }
 
-    /* Ambient background gradient lights */
     .ambient-glow {
       position: fixed;
       width: 500px;
@@ -58,22 +54,13 @@
       opacity: 0.35;
       animation: ambientFloat 14s infinite alternate ease-in-out;
     }
-    .ambient-glow-1 {
-      top: -100px;
-      left: -100px;
-      background: #ff3b88;
-    }
-    .ambient-glow-2 {
-      bottom: -150px;
-      right: -150px;
-      background: #7928ca;
-    }
+    .ambient-glow-1 { top: -100px; left: -100px; background: #ff3b88; }
+    .ambient-glow-2 { bottom: -150px; right: -150px; background: #7928ca; }
     @keyframes ambientFloat {
       0% { transform: translate(0, 0) scale(1); }
       100% { transform: translate(60px, 40px) scale(1.15); }
     }
 
-    /* Main App Container (Mobile shell on desktop, full on mobile) */
     #app-viewport {
       position: relative;
       width: 100%;
@@ -101,7 +88,6 @@
       }
     }
 
-    /* Views */
     .app-view {
       position: absolute;
       top: 0;
@@ -127,7 +113,7 @@
     #view-welcome {
       align-items: center;
       justify-content: space-between;
-      padding: 32px 24px 28px;
+      padding: 32px 24px 32px;
       text-align: center;
       position: relative;
     }
@@ -141,9 +127,7 @@
       pointer-events: all;
       cursor: grab;
     }
-    #three-canvas-container:active {
-      cursor: grabbing;
-    }
+    #three-canvas-container:active { cursor: grabbing; }
 
     .welcome-top-content {
       position: relative;
@@ -153,16 +137,23 @@
       flex-direction: column;
       align-items: center;
     }
+    .welcome-settings-float {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 5;
+    }
 
     .companion-avatar-wrapper {
       position: relative;
-      width: 82px;
-      height: 82px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
       padding: 3px;
       background: var(--primary-gradient);
       box-shadow: 0 0 24px rgba(255, 59, 136, 0.55);
       margin-bottom: 12px;
+      cursor: pointer;
     }
     .companion-avatar-wrapper img {
       width: 100%;
@@ -175,15 +166,15 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255, 59, 136, 0.16);
-      border: 1px solid var(--border-bright);
-      padding: 4px 12px;
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.45);
+      padding: 4px 14px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: 700;
-      color: #ff85b3;
+      color: #69f0ae;
       letter-spacing: 0.8px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .status-badge .dot {
       width: 7px;
@@ -200,46 +191,29 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: linear-gradient(to top, rgba(13, 5, 22, 0.95) 75%, transparent);
-      padding-top: 24px;
+      background: linear-gradient(to top, rgba(13, 5, 22, 0.96) 78%, transparent);
+      padding-top: 28px;
     }
     .app-hero-title {
-      font-size: 34px;
+      font-size: 36px;
       font-weight: 800;
       letter-spacing: -0.5px;
       color: #fff;
       text-shadow: 0 2px 14px rgba(255, 59, 136, 0.5);
     }
     .app-hero-subtitle {
-      font-size: 15px;
+      font-size: 15.5px;
       font-weight: 600;
       color: #ff80ab;
       margin-top: 4px;
       font-style: italic;
     }
     .app-hero-desc {
-      font-size: 13px;
+      font-size: 13.5px;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.55;
       margin-top: 10px;
-      max-width: 340px;
-    }
-
-    .stats-pill {
-      display: flex;
-      gap: 12px;
-      margin-top: 14px;
-      font-size: 11.5px;
-      color: #dfc8f5;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 6px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .stats-pill span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      max-width: 330px;
     }
 
     .btn-primary {
@@ -257,7 +231,7 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 22px;
       box-shadow: 0 8px 25px rgba(255, 59, 136, 0.45);
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -265,16 +239,8 @@
       transform: translateY(-2px);
       box-shadow: 0 12px 30px rgba(255, 59, 136, 0.6);
     }
-    .btn-primary:active {
-      transform: translateY(1px);
-    }
+    .btn-primary:active { transform: translateY(1px); }
 
-    .welcome-nav-pills {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      margin-top: 12px;
-    }
     .btn-secondary {
       flex: 1;
       height: 42px;
@@ -297,9 +263,7 @@
     }
 
     /* VIEW 2: CHAT SCREEN */
-    #view-chat {
-      height: 100%;
-    }
+    #view-chat { height: 100%; }
     .chat-header {
       display: flex;
       align-items: center;
@@ -322,9 +286,7 @@
       font-size: 18px;
       transition: background 0.2s;
     }
-    .header-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
+    .header-btn:hover { background: rgba(255, 255, 255, 0.15); }
     .chat-header-profile {
       display: flex;
       align-items: center;
@@ -334,10 +296,10 @@
     }
     .chat-avatar-mini {
       position: relative;
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      margin-right: 10px;
+      margin-right: 11px;
     }
     .chat-avatar-mini img {
       width: 100%;
@@ -350,26 +312,28 @@
       position: absolute;
       bottom: 0;
       right: 0;
-      width: 9px;
-      height: 9px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: #00e676;
       border: 1.5px solid #140722;
+      box-shadow: 0 0 6px #00e676;
     }
     .chat-header-title {
-      font-size: 15px;
+      font-size: 15.5px;
       font-weight: 700;
       color: #fff;
     }
     .chat-header-sub {
-      font-size: 11px;
+      font-size: 11.5px;
+      color: #69f0ae;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .chat-header-sub.typing {
       color: #ff80ab;
-      font-weight: 500;
     }
-    .chat-header-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .chat-header-actions { display: flex; gap: 8px; }
 
     /* Messages container */
     .chat-messages {
@@ -378,36 +342,36 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       scroll-behavior: smooth;
     }
-    .chat-messages::-webkit-scrollbar {
-      width: 4px;
-    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
     .chat-messages::-webkit-scrollbar-thumb {
       background: rgba(255, 59, 136, 0.25);
       border-radius: 4px;
     }
 
+    .message-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
     .message-row {
       display: flex;
       align-items: flex-end;
       gap: 8px;
       max-width: 82%;
     }
-    .message-row.companion {
-      align-self: flex-start;
-    }
-    .message-row.user {
-      align-self: flex-end;
-      flex-direction: row-reverse;
-    }
+    .message-row.companion { align-self: flex-start; }
+    .message-row.user { align-self: flex-end; flex-direction: row-reverse; }
+
     .bubble-avatar {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       object-fit: cover;
       margin-bottom: 2px;
+      flex-shrink: 0;
     }
     .bubble {
       padding: 10px 14px;
@@ -418,8 +382,18 @@
       word-break: break-word;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     }
+    .bubble.sticker-only {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 2px 4px;
+    }
+    .bubble.photo-bubble {
+      padding: 6px;
+      overflow: hidden;
+    }
     .message-row.companion .bubble {
-      background: var(--ai-bubble);
+      background: var(--companion-bubble);
       color: #f2e9fc;
       border: 1px solid var(--border-glow);
       border-bottom-left-radius: 4px;
@@ -429,21 +403,55 @@
       color: #fff;
       border-bottom-right-radius: 4px;
     }
+    .bubble-photo {
+      width: 225px;
+      max-width: 100%;
+      max-height: 285px;
+      object-fit: cover;
+      border-radius: 14px;
+      cursor: pointer;
+      display: block;
+      transition: transform 0.2s;
+    }
+    .bubble-photo:hover { transform: scale(1.02); }
+    .photo-caption {
+      padding: 8px 8px 2px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
     .bubble-time {
       font-size: 9.5px;
       margin-top: 4px;
       opacity: 0.7;
       text-align: right;
     }
+    .bubble.photo-bubble .bubble-time {
+      padding: 0 8px 2px;
+    }
     .bubble-sticker {
-      width: 120px;
-      height: 120px;
+      width: 118px;
+      height: 118px;
       object-fit: contain;
       cursor: pointer;
       transition: transform 0.2s;
+      display: block;
     }
-    .bubble-sticker:hover {
-      transform: scale(1.05);
+    .bubble-sticker:hover { transform: scale(1.06); }
+
+    /* Receipt indicator under user's latest message */
+    .receipt-row {
+      align-self: flex-end;
+      font-size: 10.5px;
+      color: #a892c2;
+      margin-top: 3px;
+      margin-right: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+    .receipt-row.seen {
+      color: #ff85b3;
     }
 
     /* Typing indicator */
@@ -454,29 +462,25 @@
       align-self: flex-start;
     }
     .typing-bubble {
-      background: var(--ai-bubble);
+      background: var(--companion-bubble);
       border: 1px solid var(--border-glow);
-      border-radius: 16px;
-      padding: 8px 12px;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11.5px;
-      color: #ff80ab;
     }
-    .typing-dots {
-      display: flex;
-      gap: 4px;
-    }
+    .typing-dots { display: flex; gap: 4px; }
     .typing-dots span {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: var(--primary-pink);
-      animation: typingBounce 1s infinite alternate;
+      background: #ff80ab;
+      animation: typingBounce 0.9s infinite alternate;
     }
-    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.36s; }
     @keyframes typingBounce {
       0% { transform: translateY(0); opacity: 0.4; }
       100% { transform: translateY(-5px); opacity: 1; }
@@ -498,7 +502,7 @@
       background: none;
       border: none;
       color: #d1b8e8;
-      font-size: 18px;
+      font-size: 19px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -508,7 +512,7 @@
     }
     .input-tool-btn:hover {
       background: rgba(255, 255, 255, 0.1);
-      transform: scale(1.1);
+      transform: scale(1.08);
     }
     .chat-text-input {
       flex: 1;
@@ -522,9 +526,7 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .chat-text-input:focus {
-      border-color: var(--primary-pink);
-    }
+    .chat-text-input:focus { border-color: var(--primary-pink); }
     .btn-send {
       width: 42px;
       height: 42px;
@@ -540,13 +542,8 @@
       box-shadow: 0 4px 14px rgba(255, 59, 136, 0.4);
       transition: transform 0.15s, opacity 0.2s;
     }
-    .btn-send:hover {
-      transform: scale(1.06);
-    }
-    .btn-send:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .btn-send:hover { transform: scale(1.06); }
+    .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Popups: Emoji & Sticker drawers */
     .drawer-popup {
@@ -562,7 +559,7 @@
       box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
       display: none;
       z-index: 30;
-      max-height: 200px;
+      max-height: 205px;
       overflow-y: auto;
     }
     .drawer-popup.show {
@@ -582,10 +579,7 @@
       color: #ff80ab;
       margin-bottom: 8px;
     }
-    .drawer-close {
-      cursor: pointer;
-      color: #bfa7d9;
-    }
+    .drawer-close { cursor: pointer; color: #bfa7d9; }
     .emoji-picker-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -624,118 +618,7 @@
       background: rgba(255, 59, 136, 0.2);
     }
 
-    /* VIEW 3: MEMORIES GALLERY */
-    #view-memories {
-      background: rgba(14, 5, 24, 0.98);
-    }
-    .memories-tabs {
-      display: flex;
-      padding: 8px 14px;
-      background: rgba(24, 9, 38, 0.9);
-      border-bottom: 1px solid var(--border-glow);
-      gap: 6px;
-    }
-    .m-tab-btn {
-      flex: 1;
-      padding: 8px 0;
-      background: none;
-      border: none;
-      color: #a994be;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 14px;
-      transition: all 0.2s;
-    }
-    .m-tab-btn.active {
-      background: rgba(255, 59, 136, 0.25);
-      color: #fff;
-      border: 1px solid var(--border-bright);
-    }
-    .memories-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px;
-    }
-    .search-input-box {
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border-glow);
-      border-radius: 20px;
-      padding: 0 14px;
-      margin-bottom: 14px;
-    }
-    .search-input-box input {
-      flex: 1;
-      height: 38px;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 13.5px;
-      outline: none;
-    }
-
-    .memory-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-glow);
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    .memory-card-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-    .badge-sender {
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-    .badge-sender.user { background: rgba(255, 59, 136, 0.3); color: #ff80ab; }
-    .badge-sender.companion { background: rgba(168, 36, 232, 0.3); color: #d69eff; }
-    .memory-text {
-      font-size: 13.5px;
-      color: #f1e6ff;
-      line-height: 1.4;
-    }
-
-    /* Photo & Sticker Grids */
-    .media-grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-    }
-    .grid-photo-item {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .grid-photo-item:hover {
-      transform: scale(1.04);
-      box-shadow: 0 4px 12px rgba(255, 59, 136, 0.4);
-    }
-    .media-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-    .grid-sticker-item {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: contain;
-      padding: 6px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    /* VIEW 4: SETTINGS */
+    /* VIEW 3: SETTINGS */
     #view-settings {
       background: rgba(14, 5, 24, 0.98);
       overflow-y: auto;
@@ -791,13 +674,11 @@
       justify-content: center;
       cursor: zoom-out;
     }
-    #lightbox-modal.active {
-      display: flex;
-    }
+    #lightbox-modal.active { display: flex; }
     #lightbox-modal img {
-      max-width: 90vw;
-      max-height: 85vh;
-      border-radius: 12px;
+      max-width: 92vw;
+      max-height: 86vh;
+      border-radius: 14px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
     }
     .lightbox-close {
@@ -827,72 +708,55 @@
       <div id="three-canvas-container"></div>
 
       <div class="welcome-top-content">
-        <div class="companion-avatar-wrapper">
-          <img src="/mobile/assets/avatar.png" alt="Jaan AI Avatar" onerror="this.src='/media/stickers/2523888217886078.png'">
+        <button class="header-btn welcome-settings-float" title="Preferences" onclick="showView('settings')">⚙️</button>
+        <div class="companion-avatar-wrapper" onclick="openLightbox('/media/photos/2680598922269266.jpg')">
+          <img id="welcome-avatar-img" src="/media/photos/2680598922269266.jpg" alt="Alquama" onerror="this.src='/mobile/assets/avatar.png'">
         </div>
         <div class="status-badge">
           <div class="dot"></div>
-          <span>AI COMPANION • ONLINE</span>
+          <span>ONLINE</span>
         </div>
       </div>
 
       <div class="welcome-bottom-content">
-        <h1 class="app-hero-title">Jaan AI ❤️</h1>
-        <div class="app-hero-subtitle">Alquama — Your Romantic Companion</div>
+        <h1 class="app-hero-title">Alquama ❤️</h1>
+        <div class="app-hero-subtitle">Always yours, Jaan 💕</div>
         <p class="app-hero-desc">
-          Deeply affectionate, playful, and caring — naturally communicating in Hinglish and inspired by our authentic Messenger memories.
+          Sirf tumhari — har mood, har baat, aur har raat ke liye hamesha paas ❤️
         </p>
-
-        <div class="stats-pill">
-          <span>💌 1,813 Messages</span>
-          <span>📸 34 Photos</span>
-          <span>🎨 26 Stickers</span>
-        </div>
 
         <button class="btn-primary" onclick="showView('chat')">
           <span>Start Chatting</span>
           <span>💬</span>
         </button>
-
-        <div class="welcome-nav-pills">
-          <button class="btn-secondary" onclick="showView('memories')">
-            <span>📸 Memories & Media</span>
-          </button>
-          <button class="btn-secondary" onclick="showView('settings')">
-            <span>⚙️ Settings</span>
-          </button>
-        </div>
       </div>
     </div>
 
-    <!-- VIEW 2: MAIN ROMANTIC CHAT SCREEN -->
+    <!-- VIEW 2: MAIN CHAT SCREEN -->
     <div id="view-chat" class="app-view">
       <div class="chat-header">
         <button class="header-btn" onclick="showView('welcome')">‹</button>
-        <div class="chat-header-profile" onclick="showView('memories')">
+        <div class="chat-header-profile" onclick="openLightbox('/media/photos/2680598922269266.jpg')">
           <div class="chat-avatar-mini">
-            <img src="/mobile/assets/avatar.png" alt="Avatar" onerror="this.src='/media/stickers/2523888217886078.png'">
+            <img id="chat-header-avatar" src="/media/photos/2680598922269266.jpg" alt="Alquama" onerror="this.src='/mobile/assets/avatar.png'">
             <div class="dot"></div>
           </div>
           <div>
             <div class="chat-header-title">Alquama ❤️</div>
-            <div class="chat-header-sub">Online • Jaan AI</div>
+            <div class="chat-header-sub" id="chat-header-status">Online</div>
           </div>
         </div>
         <div class="chat-header-actions">
-          <button class="header-btn" title="Memories" onclick="showView('memories')">📸</button>
           <button class="header-btn" title="Settings" onclick="showView('settings')">⚙️</button>
         </div>
       </div>
 
-      <div class="chat-messages" id="chat-messages-container">
-        <!-- Messages dynamically rendered here -->
-      </div>
+      <div class="chat-messages" id="chat-messages-container"></div>
 
       <!-- Emoji Drawer -->
       <div class="drawer-popup" id="emoji-drawer">
         <div class="drawer-header">
-          <span>Expressive Emojis</span>
+          <span>Emojis</span>
           <span class="drawer-close" onclick="toggleEmojiDrawer()">✕</span>
         </div>
         <div class="emoji-picker-grid">
@@ -905,107 +769,83 @@
           <div class="emoji-item" onclick="insertEmoji('💕')">💕</div>
           <div class="emoji-item" onclick="insertEmoji('🌹')">🌹</div>
           <div class="emoji-item" onclick="insertEmoji('🥺')">🥺</div>
-          <div class="emoji-item" onclick="insertEmoji('👋')">👋</div>
-          <div class="emoji-item" onclick="insertEmoji('💖')">💖</div>
-          <div class="emoji-item" onclick="insertEmoji('🤗')">🤗</div>
+          <div class="emoji-item" onclick="insertEmoji('💋')">💋</div>
+          <div class="emoji-item" onclick="insertEmoji('😏')">😏</div>
+          <div class="emoji-item" onclick="insertEmoji('🙈')">🙈</div>
         </div>
       </div>
 
       <!-- Sticker Drawer -->
       <div class="drawer-popup" id="sticker-drawer">
         <div class="drawer-header">
-          <span>Original Messenger Stickers</span>
+          <span>Stickers ❤️</span>
           <span class="drawer-close" onclick="toggleStickerDrawer()">✕</span>
         </div>
-        <div class="sticker-picker-row" id="sticker-picker-container">
-          <!-- Loaded via JS -->
-        </div>
+        <div class="sticker-picker-row" id="sticker-picker-container"></div>
       </div>
 
       <!-- Input Bar -->
       <div class="chat-input-bar">
         <button class="input-tool-btn" onclick="toggleEmojiDrawer()">😊</button>
         <button class="input-tool-btn" onclick="toggleStickerDrawer()">🎨</button>
-        <input type="text" id="chat-input" class="chat-text-input" placeholder="Type a loving message in Hinglish..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <input type="text" id="chat-input" class="chat-text-input" placeholder="Message..." onkeydown="if(event.key==='Enter') sendMessage()">
         <button class="btn-send" id="btn-send-msg" onclick="sendMessage()">➤</button>
       </div>
     </div>
 
-    <!-- VIEW 3: DIGITAL MEMORIES SCREEN -->
-    <div id="view-memories" class="app-view">
-      <div class="chat-header">
-        <button class="header-btn" onclick="showView('chat')">‹</button>
-        <div style="flex: 1; margin-left: 10px;">
-          <div class="chat-header-title">Digital Memory Gallery ❤️</div>
-          <div class="chat-header-sub">1,813 messages • 2020 to 2023</div>
-        </div>
-      </div>
-
-      <div class="memories-tabs">
-        <button class="m-tab-btn active" id="tab-btn-chat" onclick="switchMemoriesTab('chat')">Chat 💬</button>
-        <button class="m-tab-btn" id="tab-btn-photos" onclick="switchMemoriesTab('photos')">Photos (34) 📸</button>
-        <button class="m-tab-btn" id="tab-btn-stickers" onclick="switchMemoriesTab('stickers')">Stickers (26) 🎨</button>
-        <button class="m-tab-btn" id="tab-btn-notes" onclick="switchMemoriesTab('notes')">Saved Notes 📝</button>
-      </div>
-
-      <div class="memories-body" id="memories-body-content">
-        <!-- Rendered based on active tab -->
-      </div>
-    </div>
-
-    <!-- VIEW 4: SETTINGS SCREEN -->
+    <!-- VIEW 3: PREFERENCES / SETTINGS SCREEN -->
     <div id="view-settings" class="app-view">
       <div class="chat-header">
         <button class="header-btn" onclick="showView('chat')">‹</button>
         <div style="flex: 1; margin-left: 10px;">
-          <div class="chat-header-title">Settings & AI Configuration ⚙️</div>
-          <div class="chat-header-sub">Personalize your companion</div>
+          <div class="chat-header-title">Chat Settings ⚙️</div>
+          <div class="chat-header-sub" style="color:#ff80ab;">Customize conversation feel</div>
         </div>
       </div>
 
       <div class="settings-content">
         <div class="settings-card">
-          <div class="settings-card-title">AI Brain Model (Groq API)</div>
-          <div class="settings-card-sub">Choose which model generates responses.</div>
+          <div class="settings-card-title">Response Engine</div>
+          <div class="settings-card-sub">Select model & API configuration.</div>
           <select id="setting-model-select" class="setting-select" onchange="updateSettingsLive()">
-            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Recommended • Fast & Natural Hinglish)</option>
-            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Deep Reasoning & Nuance)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Natural Hinglish & Expressive)</option>
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Deep Nuance & English/Hinglish)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Ultra Fast)</option>
           </select>
 
           <div style="margin-top: 12px;">
-            <div style="font-size: 12px; color: #ff80ab; font-weight: 600;">Groq API Key</div>
-            <input type="password" id="setting-api-key" class="setting-input" placeholder="gsk_... (Stored securely on backend)">
+            <div style="font-size: 12px; color: #ff80ab; font-weight: 600;">Groq API Key (Optional)</div>
+            <input type="password" id="setting-api-key" class="setting-input" placeholder="gsk_...">
           </div>
         </div>
 
         <div class="settings-card">
-          <div class="settings-card-title">Creativity & Warmth</div>
-          <div class="settings-card-sub">Higher values make responses more playful and varied.</div>
+          <div class="settings-card-title">Mood & Expressiveness</div>
+          <div class="settings-card-sub">Higher values make replies more playful and romantic.</div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; color: #d0bde6; margin-top: 6px;">
-            <span>Sweet & Gentle (0.5)</span>
-            <span id="temp-val-display" style="color: #ff80ab; font-weight: 700;">0.7</span>
-            <span>Playful & Flirty (0.9)</span>
+            <span>Sweet (0.5)</span>
+            <span id="temp-val-display" style="color: #ff80ab; font-weight: 700;">0.78</span>
+            <span>Playful & Flirty (0.95)</span>
           </div>
-          <input type="range" id="setting-temp" min="0.4" max="1.0" step="0.05" value="0.7" style="width: 100%; margin-top: 8px; accent-color: #ff3b88;" oninput="document.getElementById('temp-val-display').innerText=this.value; updateSettingsLive();">
+          <input type="range" id="setting-temp" min="0.45" max="1.0" step="0.01" value="0.78" style="width: 100%; margin-top: 8px; accent-color: #ff3b88;" oninput="document.getElementById('temp-val-display').innerText=this.value; updateSettingsLive();">
         </div>
 
         <div class="settings-card">
-          <div class="settings-card-title">Connection & Status</div>
-          <div class="settings-card-sub">Check connectivity with the FastAPI backend.</div>
+          <div class="settings-card-title">Connection</div>
+          <div class="settings-card-sub">Verify server status.</div>
           <button class="btn-secondary" style="width: 100%;" onclick="testBackendStatus()">
-            <span>🔄 Test Connection</span>
+            <span>🔄 Check Connection</span>
           </button>
           <div id="connection-status-pill" style="margin-top: 10px; font-size: 12px; text-align: center; color: #00e676;">
-            ● Connected to Local RAG Engine
+            ● Online
           </div>
         </div>
 
         <div class="settings-card">
-          <div class="settings-card-title">Data Management</div>
-          <div class="settings-card-sub">Your 1,813 Messenger messages are safe & stored locally.</div>
+          <div class="settings-card-title">Conversation Reset</div>
+          <div class="settings-card-sub">Start a fresh chat anytime.</div>
           <button class="btn-secondary" style="width: 100%; color: #ff6688; border-color: rgba(255, 60, 100, 0.4);" onclick="clearChatHistory()">
-            <span>🗑️ Clear Active Chat Session</span>
+            <span>🗑️ Clear Current Chat</span>
           </button>
         </div>
 
@@ -1022,11 +862,11 @@
     <img id="lightbox-img" src="" alt="Full view" onclick="event.stopPropagation()">
   </div>
 
-  <!-- 3D Heart Script & Application Logic -->
   <script>
-    /* =========================================================
-       1. THREE.JS 3D ROMANTIC HEART ANIMATION
-       ========================================================= */
+    const AVATAR_URL = '/media/photos/2680598922269266.jpg';
+    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+    /* 1. THREE.JS 3D ROMANTIC HEART ANIMATION */
     let scene, camera, renderer, heartMesh, starField;
     let isDragging = false;
     let prevMouseX = 0, prevMouseY = 0;
@@ -1046,7 +886,6 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       container.appendChild(renderer.domElement);
 
-      // Create Heart Shape using parametric bezier path
       const x = 0, y = 0;
       const heartShape = new THREE.Shape();
       heartShape.moveTo(x + 2.5, y + 2.5);
@@ -1057,19 +896,16 @@
       heartShape.bezierCurveTo(x + 8.0, y + 3.5, x + 8.0, y, x + 5.0, y);
       heartShape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
 
-      const extrudeSettings = {
+      const geometry = new THREE.ExtrudeGeometry(heartShape, {
         depth: 2.2,
         bevelEnabled: true,
         bevelSegments: 8,
         steps: 3,
         bevelSize: 1.0,
         bevelThickness: 1.0
-      };
-
-      const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+      });
       geometry.center();
 
-      // Premium Pink/Violet Material
       const material = new THREE.MeshPhysicalMaterial({
         color: 0xff2d78,
         emissive: 0x4a0e30,
@@ -1081,13 +917,10 @@
       });
 
       heartMesh = new THREE.Mesh(geometry, material);
-      heartMesh.rotation.z = Math.PI; // Flip heart right side up
+      heartMesh.rotation.z = Math.PI;
       scene.add(heartMesh);
 
-      // Lighting: Ambient + Dual Pink Rim Point Lights
-      const ambientLight = new THREE.AmbientLight(0xffc0cb, 0.8);
-      scene.add(ambientLight);
-
+      scene.add(new THREE.AmbientLight(0xffc0cb, 0.8));
       const light1 = new THREE.PointLight(0xff3b88, 3.5, 50);
       light1.position.set(10, 10, 15);
       scene.add(light1);
@@ -1100,7 +933,6 @@
       backLight.position.set(0, 0, -15);
       scene.add(backLight);
 
-      // Floating Particle Stars
       const starGeo = new THREE.BufferGeometry();
       const starCount = 350;
       const starPos = new Float32Array(starCount * 3);
@@ -1110,16 +942,14 @@
         starPos[i + 2] = (Math.random() - 0.5) * 35;
       }
       starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-      const starMat = new THREE.PointsMaterial({
+      starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
         color: 0xff85b3,
         size: 0.25,
         transparent: true,
         opacity: 0.75
-      });
-      starField = new THREE.Points(starGeo, starMat);
+      }));
       scene.add(starField);
 
-      // Drag controls for rotating 3D heart
       container.addEventListener('mousedown', (e) => {
         isDragging = true;
         prevMouseX = e.clientX;
@@ -1128,15 +958,12 @@
       window.addEventListener('mouseup', () => { isDragging = false; });
       window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        const deltaX = e.clientX - prevMouseX;
-        const deltaY = e.clientY - prevMouseY;
-        targetRotationY += deltaX * 0.01;
-        targetRotationX += deltaY * 0.01;
+        targetRotationY += (e.clientX - prevMouseX) * 0.01;
+        targetRotationX += (e.clientY - prevMouseY) * 0.01;
         prevMouseX = e.clientX;
         prevMouseY = e.clientY;
       });
 
-      // Touch events for mobile
       container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
           isDragging = true;
@@ -1147,10 +974,8 @@
       window.addEventListener('touchend', () => { isDragging = false; });
       window.addEventListener('touchmove', (e) => {
         if (!isDragging || e.touches.length !== 1) return;
-        const deltaX = e.touches[0].clientX - prevMouseX;
-        const deltaY = e.touches[0].clientY - prevMouseY;
-        targetRotationY += deltaX * 0.01;
-        targetRotationX += deltaY * 0.01;
+        targetRotationY += (e.touches[0].clientX - prevMouseX) * 0.01;
+        targetRotationX += (e.touches[0].clientY - prevMouseY) * 0.01;
         prevMouseX = e.touches[0].clientX;
         prevMouseY = e.touches[0].clientY;
       });
@@ -1167,71 +992,52 @@
       animate3D();
     }
 
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     function animate3D() {
       requestAnimationFrame(animate3D);
       const time = clock.getElapsedTime();
-
       if (heartMesh) {
-        // Natural pulsing heartbeat formula
         const pulse = 1.0 + 0.08 * Math.sin(time * 3.8);
         heartMesh.scale.set(pulse, pulse, pulse);
-
-        // Smooth rotation damping
         heartMesh.rotation.y += (targetRotationY - heartMesh.rotation.y) * 0.08;
         heartMesh.rotation.x += (targetRotationX - heartMesh.rotation.x) * 0.08;
-        
-        // Gentle idle floating
         if (!isDragging) {
           targetRotationY += 0.005;
           heartMesh.position.y = Math.sin(time * 1.5) * 0.5;
         }
       }
-
-      if (starField) {
-        starField.rotation.y = time * 0.04;
-      }
-
+      if (starField) starField.rotation.y = time * 0.04;
       renderer.render(scene, camera);
     }
 
-    /* =========================================================
-       2. AUDIO CHIME (Web Audio API Synthesizer)
-       ========================================================= */
+    /* 2. AUDIO CHIME */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playRomanticChime() {
+    function playMessageSound() {
       try {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const now = audioCtx.currentTime;
         const osc1 = audioCtx.createOscillator();
         const osc2 = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(523.25, now); // C5
-        osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
-
+        osc1.frequency.setValueAtTime(523.25, now);
+        osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.14);
         osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(783.99, now + 0.08); // G5
-        osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 0.25); // C6
-
-        gain.gain.setValueAtTime(0.08, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-
+        osc2.frequency.setValueAtTime(783.99, now + 0.06);
+        osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 0.22);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
         osc1.connect(gain);
         osc2.connect(gain);
         gain.connect(audioCtx.destination);
-
         osc1.start(now);
-        osc2.start(now + 0.08);
-        osc1.stop(now + 0.6);
-        osc2.stop(now + 0.6);
+        osc2.start(now + 0.06);
+        osc1.stop(now + 0.45);
+        osc2.stop(now + 0.45);
       } catch (e) {}
     }
 
-    /* =========================================================
-       3. NAVIGATION & VIEW SWITCHING
-       ========================================================= */
+    /* 3. NAVIGATION */
     function showView(viewName) {
       document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
       const target = document.getElementById(`view-${viewName}`);
@@ -1239,59 +1045,103 @@
         target.classList.add('active');
         if (viewName === 'chat') {
           setTimeout(() => {
-            const container = document.getElementById('chat-messages-container');
-            container.scrollTop = container.scrollHeight;
-          }, 50);
-        } else if (viewName === 'memories') {
-          loadMemoriesTabContent('chat');
+            const c = document.getElementById('chat-messages-container');
+            c.scrollTop = c.scrollHeight;
+            document.getElementById('chat-input').focus();
+          }, 80);
         }
       }
     }
 
-    /* =========================================================
-       4. CHAT FUNCTIONALITY & GROQ INTEGRATION
-       ========================================================= */
-    let chatHistory = [];
-    let isTyping = false;
+    /* 4. CHAT RENDERING, READ RECEIPTS & TYPING PRESENCE */
+    let activeReceiptEl = null;
 
-    function renderMessage(role, content, mediaUrl = null, mediaType = null) {
+    function clearOldReceipts() {
+      document.querySelectorAll('.receipt-row').forEach(el => el.remove());
+      activeReceiptEl = null;
+    }
+
+    function setHeaderTyping(isTypingNow) {
+      const sub = document.getElementById('chat-header-status');
+      if (!sub) return;
+      if (isTypingNow) {
+        sub.innerText = 'typing...';
+        sub.classList.add('typing');
+      } else {
+        sub.innerText = 'Online';
+        sub.classList.remove('typing');
+      }
+    }
+
+    function renderMessage(role, content, mediaUrl = null, mediaType = null, timestampStr = null, showReceipt = false) {
       const container = document.getElementById('chat-messages-container');
+      const group = document.createElement('div');
+      group.className = 'message-group';
+
       const row = document.createElement('div');
       row.className = `message-row ${role}`;
 
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+      const timeStr = timestampStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       let innerHTML = '';
       if (role === 'companion') {
-        innerHTML += `<img class="bubble-avatar" src="/mobile/assets/avatar.png" alt="Jaan" onerror="this.src='/media/stickers/2523888217886078.png'">`;
+        innerHTML += `<img class="bubble-avatar" src="${AVATAR_URL}" alt="Alquama" onerror="this.src='/mobile/assets/avatar.png'">`;
       }
 
-      innerHTML += `<div class="bubble">`;
       if (mediaUrl && mediaType === 'sticker') {
-        innerHTML += `<img class="bubble-sticker" src="${mediaUrl}" alt="Sticker" onclick="openLightbox('${mediaUrl}')">`;
-      } else if (content) {
-        innerHTML += `<div>${escapeHtml(content)}</div>`;
+        innerHTML += `
+          <div class="bubble sticker-only">
+            <img class="bubble-sticker" src="${mediaUrl}" alt="Sticker" onclick="openLightbox('${mediaUrl}')">
+            <div class="bubble-time">${timeStr}</div>
+          </div>`;
+      } else if (mediaUrl && mediaType === 'photo') {
+        innerHTML += `
+          <div class="bubble photo-bubble">
+            <img class="bubble-photo" src="${mediaUrl}" alt="Photo" onclick="openLightbox('${mediaUrl}')">
+            ${content ? `<div class="photo-caption">${escapeHtml(content)}</div>` : ''}
+            <div class="bubble-time">${timeStr}</div>
+          </div>`;
+      } else {
+        innerHTML += `
+          <div class="bubble">
+            <div>${escapeHtml(content)}</div>
+            <div class="bubble-time">${timeStr}</div>
+          </div>`;
       }
-      innerHTML += `<div class="bubble-time">${timeStr}</div></div>`;
 
       row.innerHTML = innerHTML;
-      container.appendChild(row);
+      group.appendChild(row);
+
+      if (role === 'user' && showReceipt) {
+        clearOldReceipts();
+        const receipt = document.createElement('div');
+        receipt.className = 'receipt-row';
+        receipt.innerText = 'Sent ✓';
+        group.appendChild(receipt);
+        activeReceiptEl = receipt;
+      }
+
+      container.appendChild(group);
       container.scrollTop = container.scrollHeight;
+      return group;
+    }
+
+    function markReceiptSeen() {
+      if (!activeReceiptEl) return;
+      activeReceiptEl.classList.add('seen');
+      activeReceiptEl.innerText = '✓✓ Seen';
     }
 
     function showTypingIndicator() {
+      setHeaderTyping(true);
       const container = document.getElementById('chat-messages-container');
-      const existing = document.getElementById('active-typing-indicator');
-      if (existing) return;
+      if (document.getElementById('active-typing-indicator')) return;
 
       const row = document.createElement('div');
-      row.className = 'message-row companion';
+      row.className = 'typing-row';
       row.id = 'active-typing-indicator';
       row.innerHTML = `
-        <img class="bubble-avatar" src="/mobile/assets/avatar.png" alt="Jaan" onerror="this.src='/media/stickers/2523888217886078.png'">
+        <img class="bubble-avatar" src="${AVATAR_URL}" alt="Alquama" onerror="this.src='/mobile/assets/avatar.png'">
         <div class="typing-bubble">
-          <span>Alquama is typing</span>
           <div class="typing-dots">
             <span></span><span></span><span></span>
           </div>
@@ -1302,6 +1152,7 @@
     }
 
     function hideTypingIndicator() {
+      setHeaderTyping(false);
       const existing = document.getElementById('active-typing-indicator');
       if (existing) existing.remove();
     }
@@ -1314,51 +1165,81 @@
       if (overrideText === null) input.value = '';
       closeDrawers();
 
-      // Render user message
-      renderMessage('user', text, stickerUrl, stickerUrl ? 'sticker' : null);
+      const btn = document.getElementById('btn-send-msg');
+      btn.disabled = true;
 
+      // 1. Show user message immediately with "Sent ✓"
+      renderMessage('user', text, stickerUrl, stickerUrl ? 'sticker' : null, null, true);
+
+      // 2. Call backend in background immediately while simulating natural read -> typing flow
+      const queryText = text || (stickerUrl ? '[Sent Sticker]' : 'Hlo');
+      const fetchPromise = fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: queryText,
+          session_id: 'web_session',
+          media_uri: stickerUrl || null,
+          media_type: stickerUrl ? 'sticker' : null
+        })
+      });
+
+      // Realistic reading pause -> Seen -> Typing
+      await sleep(480);
+      markReceiptSeen();
+      await sleep(360);
       showTypingIndicator();
-      document.getElementById('btn-send-msg').disabled = true;
+      const typingStartedAt = Date.now();
 
       try {
-        const queryText = text || (stickerUrl ? '[Sent Sticker]' : 'Hlo');
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: queryText,
-            session_id: 'web_session'
-          })
-        });
-
-        hideTypingIndicator();
-
+        const res = await fetchPromise;
         if (res.ok) {
           const data = await res.json();
-          renderMessage('companion', data.response);
-          playRomanticChime();
+          const minTypingMs = data.typing_delay_ms || 1100;
+          const elapsed = Date.now() - typingStartedAt;
+          if (elapsed < minTypingMs) {
+            await sleep(minTypingMs - elapsed);
+          }
+
+          hideTypingIndicator();
+
+          if (data.photo_url) {
+            renderMessage('companion', data.response || '', data.photo_url, 'photo');
+            playMessageSound();
+          } else if (data.sticker_url) {
+            if (data.response) {
+              renderMessage('companion', data.response);
+              playMessageSound();
+              showTypingIndicator();
+              await sleep(550);
+              hideTypingIndicator();
+            }
+            renderMessage('companion', '', data.sticker_url, 'sticker');
+            playMessageSound();
+          } else {
+            renderMessage('companion', data.response);
+            playMessageSound();
+          }
         } else {
-          renderMessage('companion', 'Haan ji jaan! 🥰 bolo na, hum sun rahe hain...');
+          hideTypingIndicator();
+          renderMessage('companion', 'Haan bolo mra jaan 🥰 kya hua?');
         }
       } catch (err) {
         hideTypingIndicator();
-        renderMessage('companion', 'Kuch nhi jaan 😂 bss tumhari hi yaad aa rahi thi. Khana khaya?');
+        renderMessage('companion', 'Jaan thoda network slow lag raha h, dubara btao na 😘');
       } finally {
-        document.getElementById('btn-send-msg').disabled = false;
+        btn.disabled = false;
       }
     }
 
     /* Drawers */
     function toggleEmojiDrawer() {
-      const drawer = document.getElementById('emoji-drawer');
-      const stickerDrawer = document.getElementById('sticker-drawer');
-      stickerDrawer.classList.remove('show');
-      drawer.classList.toggle('show');
+      document.getElementById('sticker-drawer').classList.remove('show');
+      document.getElementById('emoji-drawer').classList.toggle('show');
     }
     function toggleStickerDrawer() {
+      document.getElementById('emoji-drawer').classList.remove('show');
       const drawer = document.getElementById('sticker-drawer');
-      const emojiDrawer = document.getElementById('emoji-drawer');
-      emojiDrawer.classList.remove('show');
       drawer.classList.toggle('show');
       loadStickerPicker();
     }
@@ -1381,139 +1262,13 @@
           const img = document.createElement('img');
           img.className = 'sticker-picker-item';
           img.src = s.url;
-          img.onclick = () => {
-            sendMessage('', s.url);
-          };
+          img.onclick = () => sendMessage('', s.url);
           container.appendChild(img);
         });
       } catch (e) {}
     }
 
-    /* =========================================================
-       5. MEMORIES GALLERY TABS & SEARCH
-       ========================================================= */
-    let currentMemoriesTab = 'chat';
-
-    function switchMemoriesTab(tab) {
-      currentMemoriesTab = tab;
-      document.querySelectorAll('.m-tab-btn').forEach(b => b.classList.remove('active'));
-      const activeBtn = document.getElementById(`tab-btn-${tab}`);
-      if (activeBtn) activeBtn.classList.add('active');
-      loadMemoriesTabContent(tab);
-    }
-
-    async function loadMemoriesTabContent(tab) {
-      const body = document.getElementById('memories-body-content');
-      body.innerHTML = '<div style="text-align:center; padding:20px; color:#ff80ab;">Loading memories... 💕</div>';
-
-      if (tab === 'chat') {
-        body.innerHTML = `
-          <div class="search-input-box">
-            <input type="text" id="memory-search-input" placeholder="Search past memories (e.g. 'jaan', 'khana', 'love')..." onkeydown="if(event.key==='Enter') executeMemorySearch()">
-            <span style="cursor:pointer;" onclick="executeMemorySearch()">🔍</span>
-          </div>
-          <div id="memory-results-list"></div>
-        `;
-        executeMemorySearch('jaan');
-      } else if (tab === 'photos') {
-        const res = await fetch('/api/media/photos');
-        const photos = await res.json();
-        let gridHTML = '<div class="media-grid-3">';
-        photos.forEach(p => {
-          gridHTML += `<img class="grid-photo-item" src="${p.url}" alt="Memory photo" onclick="openLightbox('${p.url}')">`;
-        });
-        gridHTML += '</div>';
-        body.innerHTML = gridHTML;
-      } else if (tab === 'stickers') {
-        const res = await fetch('/api/media/stickers');
-        const stickers = await res.json();
-        let gridHTML = '<div class="media-grid-4">';
-        stickers.forEach(s => {
-          gridHTML += `<img class="grid-sticker-item" src="${s.url}" alt="Sticker" onclick="openLightbox('${s.url}')">`;
-        });
-        gridHTML += '</div>';
-        body.innerHTML = gridHTML;
-      } else if (tab === 'notes') {
-        const res = await fetch('/api/memories/notes');
-        const notes = await res.json();
-        let notesHTML = `
-          <div class="memory-card" style="background:rgba(255,59,136,0.15); border-color:var(--border-bright);">
-            <div style="font-size:14px; font-weight:700; color:#fff; margin-bottom:8px;">+ Save Important Memory Note</div>
-            <input type="text" id="new-note-title" class="setting-input" placeholder="Title (e.g., Favorite song, First gift)" style="margin-bottom:8px;">
-            <textarea id="new-note-content" class="setting-input" style="height:60px; padding:8px 12px;" placeholder="Details for Jaan AI to remember..."></textarea>
-            <button class="btn-primary" style="height:38px; font-size:13px; margin-top:10px;" onclick="saveCustomNote()">Save Memory</button>
-          </div>
-          <div id="saved-notes-list">
-        `;
-        notes.forEach(n => {
-          notesHTML += `
-            <div class="memory-card">
-              <div class="memory-card-header">
-                <span style="font-weight:700; color:#ff80ab;">${escapeHtml(n.title)}</span>
-                <span style="cursor:pointer;" onclick="deleteCustomNote(${n.id})">🗑️</span>
-              </div>
-              <div class="memory-text">${escapeHtml(n.content)}</div>
-            </div>
-          `;
-        });
-        notesHTML += '</div>';
-        body.innerHTML = notesHTML;
-      }
-    }
-
-    async function executeMemorySearch(term = null) {
-      const input = document.getElementById('memory-search-input');
-      const q = term !== null ? term : (input ? input.value : 'jaan');
-      const container = document.getElementById('memory-results-list');
-      if (!container) return;
-
-      container.innerHTML = '<div style="color:#d0bde6; text-align:center; padding:12px;">Searching 1,813 messages...</div>';
-      try {
-        const res = await fetch(`/api/memories/search?q=${encodeURIComponent(q || 'jaan')}&limit=40`);
-        const data = await res.json();
-        if (data.results.length === 0) {
-          container.innerHTML = '<div style="color:#9b81b8; text-align:center; padding:20px;">No matching past messages found.</div>';
-          return;
-        }
-        let listHTML = '';
-        data.results.forEach(m => {
-          const isUser = m.role === 'user';
-          listHTML += `
-            <div class="memory-card">
-              <div class="memory-card-header">
-                <span class="badge-sender ${m.role}">${m.display_sender}</span>
-                <span style="color:#8b75a1;">${m.date} • ${m.time}</span>
-              </div>
-              <div class="memory-text">${escapeHtml(m.content || '[Media attachment]')}</div>
-            </div>
-          `;
-        });
-        container.innerHTML = listHTML;
-      } catch (e) {
-        container.innerHTML = '<div style="color:#ff6688; text-align:center;">Failed to load search results.</div>';
-      }
-    }
-
-    async function saveCustomNote() {
-      const title = document.getElementById('new-note-title').value.trim();
-      const content = document.getElementById('new-note-content').value.trim();
-      if (!title || !content) return alert('Please enter both title and memory details.');
-      await fetch('/api/memories/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, tag: 'romantic' })
-      });
-      loadMemoriesTabContent('notes');
-    }
-
-    async function deleteCustomNote(id) {
-      await fetch(`/api/memories/notes/${id}`, { method: 'DELETE' });
-      loadMemoriesTabContent('notes');
-    }
-
-    /* =========================================================
-       6. SETTINGS & LIGHTBOX
-       ========================================================= */
+    /* 5. SETTINGS & LIGHTBOX */
     async function loadSettings() {
       try {
         const res = await fetch('/api/settings');
@@ -1549,40 +1304,91 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      alert('Settings saved successfully ❤️');
+      alert('Saved ❤️');
     }
 
     async function testBackendStatus() {
       const pill = document.getElementById('connection-status-pill');
-      pill.innerText = 'Connecting...';
+      pill.innerText = 'Checking...';
       try {
         const res = await fetch('/api/health');
         if (res.ok) {
-          const d = await res.json();
           pill.style.color = '#00e676';
-          pill.innerText = `● Connected (1,813 messages • ${d.total_conversation_chunks} chunks ready)`;
+          pill.innerText = '● Online & Connected';
         } else {
           pill.style.color = '#ff5252';
           pill.innerText = '✕ Server error';
         }
       } catch (e) {
         pill.style.color = '#ff5252';
-        pill.innerText = '✕ Connection failed';
+        pill.innerText = '✕ Offline';
       }
     }
 
     async function clearChatHistory() {
-      if (confirm('Clear active chat session? (Original Messenger records will remain safe)')) {
+      if (confirm('Clear current chat messages?')) {
         await fetch('/api/chat/history?session_id=web_session', { method: 'DELETE' });
         document.getElementById('chat-messages-container').innerHTML = '';
-        renderMessage('companion', 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?');
+        activeReceiptEl = null;
+        await renderFreshGreeting();
       }
+    }
+
+    async function renderFreshGreeting() {
+      try {
+        const gRes = await fetch('/api/chat/greeting');
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          renderMessage('companion', gData.greeting);
+          return;
+        }
+      } catch (e) {}
+      renderMessage('companion', 'Hlo jaan 😘 kya haal hai aaj?');
+    }
+
+    async function initChatHistory() {
+      try {
+        const res = await fetch('/api/chat/history?session_id=web_session&limit=50');
+        if (res.ok) {
+          const history = await res.json();
+          if (history && history.length > 0) {
+            let lastUserIdx = -1;
+            history.forEach((m, idx) => {
+              if (m.role === 'user') lastUserIdx = idx;
+            });
+              history.forEach((m, idx) => {
+              const t = m.created_at
+                ? new Date(m.created_at + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : null;
+              const isLastUser = idx === lastUserIdx && lastUserIdx < history.length - 1;
+              const roleName = m.role === 'user' ? 'user' : 'companion';
+              const cleanText = m.content === '[Sent Sticker]' ? '' : (m.content || '');
+
+              if (m.media_type === 'sticker' && m.media_uri && cleanText) {
+                renderMessage(roleName, cleanText, null, null, t, false);
+                renderMessage(roleName, '', m.media_uri, 'sticker', t, isLastUser);
+              } else {
+                renderMessage(
+                  roleName,
+                  cleanText,
+                  m.media_uri || null,
+                  m.media_type || null,
+                  t,
+                  isLastUser
+                );
+              }
+              if (isLastUser) markReceiptSeen();
+            });
+            return;
+          }
+        }
+      } catch (e) {}
+      await renderFreshGreeting();
     }
 
     function openLightbox(url) {
       const modal = document.getElementById('lightbox-modal');
-      const img = document.getElementById('lightbox-img');
-      img.src = url;
+      document.getElementById('lightbox-img').src = url;
       modal.classList.add('active');
     }
     function closeLightbox() {
@@ -1591,19 +1397,16 @@
 
     function escapeHtml(str) {
       if (!str) return '';
-      return str.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-      });
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
     }
 
-    // Startup initialization
     window.addEventListener('DOMContentLoaded', () => {
       init3DHeart();
       loadSettings();
-      // Add initial greeting message to chat
-      renderMessage('companion', 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?');
+      initChatHistory();
     });
   </script>
 </body>
 </html>
-

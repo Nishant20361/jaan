@@ -25,11 +25,11 @@ load_env_file(os.path.join(WORKSPACE_DIR, ".env"))
 load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 class Settings(BaseModel):
-    app_name: str = "Jaan AI Backend"
+    app_name: str = "Alquama ❤️"
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     groq_model: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
-    temperature: float = 0.7
-    max_tokens: int = 500
+    temperature: float = 0.78
+    max_tokens: int = 650
     host: str = "0.0.0.0"
     port: int = 8000
 

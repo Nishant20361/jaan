@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from typing import List, Optional
 from datetime import datetime
 
@@ -15,9 +16,9 @@ from backend.ai_engine import ai_engine
 from backend.memory_manager import memory_manager
 
 app = FastAPI(
-    title="Jaan AI Backend",
-    description="Intelligent Romantic AI Companion powered by Groq and Messenger History RAG",
-    version="1.0.0"
+    title="Alquama Chat Backend",
+    description="Personal romantic companion backend powered by Groq and Messenger conversation memory",
+    version="2.0.0"
 )
 
 # Enable CORS for Mobile and Web
@@ -52,26 +53,32 @@ static_dir = os.path.join(WORKSPACE_DIR, "backend", "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+
 @app.get("/")
 def get_index():
     index_file = os.path.join(static_dir, "index.html")
     if os.path.exists(index_file):
         return FileResponse(index_file)
-    return {"message": "Jaan AI Backend Running"}
+    return {"message": "Alquama Chat Running"}
+
 
 # Request Models
 class ChatRequest(BaseModel):
     message: str
     session_id: str = "default"
+    media_uri: Optional[str] = None
+    media_type: Optional[str] = None
     model: Optional[str] = None
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     stream: bool = False
 
+
 class MemoryNoteCreate(BaseModel):
     title: str
     content: str
     tag: str = "general"
+
 
 class SettingsUpdate(BaseModel):
     groq_api_key: Optional[str] = None
@@ -79,13 +86,14 @@ class SettingsUpdate(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
 
+
 # Health & Status Endpoint
 @app.get("/api/health")
 def get_health():
     api_key_configured = bool(settings.groq_api_key or os.getenv("GROQ_API_KEY"))
     return {
         "status": "online",
-        "app_name": "Jaan AI ❤️",
+        "app_name": "Alquama ❤️",
         "groq_configured": api_key_configured,
         "default_model": settings.groq_model,
         "total_historical_messages": len(rag_engine.messages),
@@ -93,50 +101,83 @@ def get_health():
         "timestamp": datetime.utcnow().isoformat()
     }
 
+
+@app.get("/api/chat/greeting")
+def get_greeting():
+    greetings = ai_engine.style_examples.get("greetings") or [
+        "Hlo jaan 😘 kya haal hai aaj?",
+        "Hlo mra jaan 🥰 kha busy the itni der se?",
+        "Aa gye online jaan ❤️ kya chal raha hai?"
+    ]
+    avatar_photo = ai_engine.curated_media.get("avatar_photo", "2680598922269266.jpg")
+    return {
+        "greeting": random.choice(greetings),
+        "avatar_url": f"/media/photos/{avatar_photo}",
+        "name": "Alquama ❤️"
+    }
+
+
 # Chat Completion Endpoint
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
-    if not request.message.strip():
+    if not request.message.strip() and not request.media_uri:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    # 1. Save user message to chat history
+    user_text = request.message.strip() or "[Sent Sticker]"
+
+    # 1. Fetch prior conversation history BEFORE saving current user message (prevents duplicate turn in prompt)
+    history = memory_manager.get_chat_history(session_id=request.session_id, limit=14)
+    recent_photos = memory_manager.get_recent_media_uris(session_id=request.session_id, media_type="photo", limit=10)
+    recent_stickers = memory_manager.get_recent_media_uris(session_id=request.session_id, media_type="sticker", limit=8)
+
+    # 2. Save user message to chat history
     memory_manager.save_chat_message(
         session_id=request.session_id,
         role="user",
-        content=request.message
+        content=user_text,
+        media_uri=request.media_uri,
+        media_type=request.media_type
     )
 
-    # 2. Fetch recent conversation history
-    history = memory_manager.get_chat_history(session_id=request.session_id, limit=10)
-    
-    # 3. Fetch user custom memories for context
+    # 3. Fetch user custom notes if any
     user_memories = memory_manager.get_memories()
     user_notes = [f"{m['title']}: {m['content']}" for m in user_memories]
 
-    # 4. Generate response
+    # 4. Generate natural response + optional photo or sticker
     result = await ai_engine.generate_response(
-        user_message=request.message,
+        user_message=user_text,
         conversation_history=history,
         user_notes=user_notes,
+        recent_photo_uris=recent_photos,
+        recent_sticker_uris=recent_stickers,
         model=request.model,
         temperature=request.temperature,
         max_tokens=request.max_tokens
     )
 
-    # 5. Save companion response to chat history
+    # 5. Save companion response (text + photo/sticker if attached)
+    comp_media_uri = result.get("photo_url") or result.get("sticker_url")
+    comp_media_type = "photo" if result.get("photo_url") else ("sticker" if result.get("sticker_url") else None)
     memory_manager.save_chat_message(
         session_id=request.session_id,
         role="companion",
-        content=result["response"]
+        content=result["response"],
+        media_uri=comp_media_uri,
+        media_type=comp_media_type
     )
 
     return {
         "response": result["response"],
+        "photo_url": result.get("photo_url"),
+        "sticker_url": result.get("sticker_url"),
+        "seen_delay_ms": result.get("seen_delay_ms", 550),
+        "typing_delay_ms": result.get("typing_delay_ms", 1200),
         "source": result["source"],
         "model": result["model"],
         "retrieved_chunks": result["retrieved_chunks"],
         "timestamp": datetime.utcnow().isoformat()
     }
+
 
 # Streaming Chat Endpoint
 @app.post("/api/chat/stream")
@@ -144,13 +185,12 @@ async def chat_stream(request: ChatRequest):
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
+    history = memory_manager.get_chat_history(session_id=request.session_id, limit=14)
     memory_manager.save_chat_message(
         session_id=request.session_id,
         role="user",
         content=request.message
     )
-
-    history = memory_manager.get_chat_history(session_id=request.session_id, limit=10)
     user_memories = memory_manager.get_memories()
     user_notes = [f"{m['title']}: {m['content']}" for m in user_memories]
 
@@ -167,8 +207,7 @@ async def chat_stream(request: ChatRequest):
             collected_response.append(chunk)
             data_payload = json.dumps({"delta": chunk})
             yield f"data: {data_payload}\n\n"
-        
-        # Save complete generated message
+
         full_text = "".join(collected_response)
         memory_manager.save_chat_message(
             session_id=request.session_id,
@@ -179,7 +218,8 @@ async def chat_stream(request: ChatRequest):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-# Memories & Chunks Endpoints
+
+# Memories & Stats Endpoints (kept for backend diagnostics/continuity)
 @app.get("/api/memories/chunks")
 def get_chunks(page: int = 1, page_size: int = 15, query: Optional[str] = None):
     if query:
@@ -199,6 +239,7 @@ def get_chunks(page: int = 1, page_size: int = 15, query: Optional[str] = None):
         "chunks": paged_chunks
     }
 
+
 @app.get("/api/memories/search")
 def search_messages(q: str = Query("", description="Search term"), limit: int = 50):
     results = rag_engine.search_messages(q, limit=limit)
@@ -207,6 +248,7 @@ def search_messages(q: str = Query("", description="Search term"), limit: int = 
         "count": len(results),
         "results": results
     }
+
 
 @app.get("/api/memories/stats")
 def get_memory_stats():
@@ -224,33 +266,30 @@ def get_memory_stats():
     return {
         "total_messages": len(rag_engine.messages),
         "total_chunks": len(rag_engine.chunks),
-        "companion_name": profile.get("companion_name", "Jaan"),
+        "companion_name": profile.get("companion_name", "Alquama"),
         "date_range": profile.get("date_range", {}),
         "top_emojis": profile.get("top_emojis", []),
         "key_phrases": profile.get("key_phrases", []),
-        "total_photos": media.get("total_photos", 0),
+        "total_photos": len(ai_engine.curated_media.get("solo_photos", [])),
         "total_stickers": media.get("total_stickers", 0),
         "total_gifs": media.get("total_gifs", 0)
     }
 
-# Media Catalog Endpoints
+
+# Verified Clean Alquama Photos Endpoint
 @app.get("/api/media/photos")
 def get_photos():
-    media_path = os.path.join(DATA_DIR, "media_catalog.json")
-    if os.path.exists(media_path):
-        with open(media_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            photos = []
-            for p in data.get("photos", []):
-                filename = os.path.basename(p["uri"])
-                photos.append({
-                    "uri": p["uri"],
-                    "url": f"/media/photos/{filename}",
-                    "filename": filename,
-                    "timestamp": p.get("timestamp")
-                })
-            return photos
-    return []
+    solo = ai_engine.curated_media.get("solo_photos", [])
+    return [
+        {
+            "uri": f"messages/e2ee_cutover/nishantkumar_1105539713135073/photos/{p['filename']}",
+            "url": p["url"],
+            "filename": p["filename"],
+            "description": p.get("description", "")
+        }
+        for p in solo
+    ]
+
 
 @app.get("/api/media/stickers")
 def get_stickers():
@@ -269,6 +308,7 @@ def get_stickers():
             return stickers
     return []
 
+
 @app.get("/api/media/gifs")
 def get_gifs():
     media_path = os.path.join(DATA_DIR, "media_catalog.json")
@@ -286,10 +326,12 @@ def get_gifs():
             return gifs
     return []
 
+
 # User-Defined Memories / Notes
 @app.get("/api/memories/notes")
 def get_notes():
     return memory_manager.get_memories()
+
 
 @app.post("/api/memories/notes")
 def add_note(note: MemoryNoteCreate):
@@ -300,6 +342,7 @@ def add_note(note: MemoryNoteCreate):
     )
     return created
 
+
 @app.delete("/api/memories/notes/{note_id}")
 def delete_note(note_id: int):
     success = memory_manager.delete_memory(note_id)
@@ -307,15 +350,18 @@ def delete_note(note_id: int):
         raise HTTPException(status_code=404, detail="Memory note not found")
     return {"success": True}
 
+
 # Active Chat History CRUD
 @app.get("/api/chat/history")
 def get_chat_history(session_id: str = "default", limit: int = 100):
     return memory_manager.get_chat_history(session_id=session_id, limit=limit)
 
+
 @app.delete("/api/chat/history")
 def clear_chat_history(session_id: str = "default"):
     deleted = memory_manager.clear_chat_history(session_id=session_id)
     return {"success": True, "deleted_count": deleted}
+
 
 # App Settings CRUD
 @app.get("/api/settings")
@@ -326,11 +372,12 @@ def get_settings():
         "temperature": settings.temperature,
         "max_tokens": settings.max_tokens,
         "available_models": [
-            {"id": "qwen/qwen3.8-27b", "name": "Qwen 3.8 27B (Recommended • Fast & Natural Hinglish)"},
-            {"id": "openai/gpt-oss-120b", "name": "GPT-OSS 120B (Deep Reasoning & Nuance)"},
+            {"id": "qwen/qwen3.8-27b", "name": "Qwen 3.8 27B (Natural Hinglish & Expressive)"},
+            {"id": "openai/gpt-oss-120b", "name": "GPT-OSS 120B (Deep Nuance & English/Hinglish)"},
             {"id": "openai/gpt-oss-20b", "name": "GPT-OSS 20B (Ultra Fast)"}
         ]
     }
+
 
 @app.post("/api/settings")
 def update_settings(payload: SettingsUpdate):

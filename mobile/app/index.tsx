@@ -17,7 +17,6 @@ const { width, height } = Dimensions.get('window');
 export default function WelcomeScreen() {
   const router = useRouter();
 
-  // Animation values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0.4)).current;
   const floatAnim1 = useRef(new Animated.Value(0)).current;
@@ -26,14 +25,12 @@ export default function WelcomeScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in screen
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1000,
+      duration: 900,
       useNativeDriver: true,
     }).start();
 
-    // Heart pulsing animation (3D heartbeat effect)
     Animated.loop(
       Animated.sequence([
         Animated.parallel([
@@ -63,7 +60,6 @@ export default function WelcomeScreen() {
       ])
     ).start();
 
-    // Floating small hearts
     const createFloat = (anim: Animated.Value, duration: number, delay: number) => {
       Animated.loop(
         Animated.sequence([
@@ -92,13 +88,6 @@ export default function WelcomeScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (e) {}
     router.push('/chat');
-  };
-
-  const handleOpenMemories = () => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (e) {}
-    router.push('/memories');
   };
 
   const handleOpenSettings = () => {
@@ -184,20 +173,20 @@ export default function WelcomeScreen() {
       </Animated.Text>
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        {/* Companion Avatar & Status Header */}
+        {/* Alquama Avatar & Online Badge */}
         <View style={styles.avatarContainer}>
           <LinearGradient
             colors={['#ff3b88', '#a824e8', '#ff73aa']}
             style={styles.avatarGradientRing}
           >
             <Image
-              source={require('../assets/avatar.png')}
+              source={require('../assets/alquama_dp.jpg')}
               style={styles.avatarImage}
             />
           </LinearGradient>
           <View style={styles.onlineBadge}>
             <View style={styles.onlineDot} />
-            <Text style={styles.onlineText}>AI COMPANION • ONLINE</Text>
+            <Text style={styles.onlineText}>ONLINE</Text>
           </View>
         </View>
 
@@ -226,13 +215,10 @@ export default function WelcomeScreen() {
 
         {/* Romantic Welcome Typography */}
         <View style={styles.textSection}>
-          <Text style={styles.appTitle}>Jaan AI</Text>
-          <Text style={styles.subtitle}>
-            Your Fictional Romantic AI Companion
-          </Text>
+          <Text style={styles.appTitle}>Alquama ❤️</Text>
+          <Text style={styles.subtitle}>Always yours, Jaan 💕</Text>
           <Text style={styles.description}>
-            Caring, playful, and affectionate — inspired by the authentic
-            moments, laughter, and expressions of our Messenger chat history.
+            Sirf tumhari — har mood, har baat, aur har raat ke liye hamesha paas ❤️
           </Text>
         </View>
 
@@ -253,16 +239,8 @@ export default function WelcomeScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Navigation Pills */}
+        {/* Subtle Settings Pill */}
         <View style={styles.pillsRow}>
-          <TouchableOpacity
-            style={styles.pillButton}
-            onPress={handleOpenMemories}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.pillText}>📸 Memories & Media</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.pillButton}
             onPress={handleOpenSettings}
@@ -272,11 +250,8 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Privacy & Discretion Footer */}
         <View style={styles.footerBadge}>
-          <Text style={styles.footerText}>
-            🔒 Private & Local • Real Messenger History Engine
-          </Text>
+          <Text style={styles.footerText}>🔒 Private Chat • Just Us Two</Text>
         </View>
       </Animated.View>
     </LinearGradient>
@@ -300,9 +275,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatarGradientRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 98,
+    height: 98,
+    borderRadius: 49,
     padding: 3,
     justifyContent: 'center',
     alignItems: 'center',
@@ -312,9 +287,9 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
   },
   avatarImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     backgroundColor: '#1d0b2e',
   },
   onlineBadge: {
@@ -323,7 +298,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 59, 136, 0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255, 59, 136, 0.4)',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,
     marginTop: 10,
@@ -339,7 +314,7 @@ const styles = StyleSheet.create({
     color: '#ff80ab',
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 0.9,
   },
   heartWrapper: {
     width: 140,
@@ -427,13 +402,12 @@ const styles = StyleSheet.create({
   pillsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
     marginTop: 16,
     width: '100%',
   },
   pillButton: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 20,
     borderWidth: 1,

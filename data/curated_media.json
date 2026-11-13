@@ -1,0 +1,125 @@
+{
+  "avatar_photo": "2680598922269266.jpg",
+  "solo_photos": [
+    {
+      "filename": "2680598922269266.jpg",
+      "url": "/media/photos/2680598922269266.jpg",
+      "outfit": "white_orange_dupatta",
+      "description": "Alquama wearing white & saffron-orange dupatta and oval glasses"
+    },
+    {
+      "filename": "222566495732666.jpg",
+      "url": "/media/photos/222566495732666.jpg",
+      "outfit": "red_kurta_white_dupatta",
+      "description": "Alquama smiling gently in red kurta, white dupatta, black-rimmed glasses"
+    },
+    {
+      "filename": "1377950689070282.jpg",
+      "url": "/media/photos/1377950689070282.jpg",
+      "outfit": "cream_kurta_1",
+      "description": "Alquama in cream embroidered kurta, glasses, red bindi"
+    },
+    {
+      "filename": "307111537157018.jpg",
+      "url": "/media/photos/307111537157018.jpg",
+      "outfit": "cream_kurta_2",
+      "description": "Alquama tilted selfie in cream kurta and glasses"
+    },
+    {
+      "filename": "2788794544737565.jpg",
+      "url": "/media/photos/2788794544737565.jpg",
+      "outfit": "cream_kurta_3",
+      "description": "Alquama close-up portrait in cream kurta"
+    },
+    {
+      "filename": "354950518844570.jpg",
+      "url": "/media/photos/354950518844570.jpg",
+      "outfit": "cream_kurta_4",
+      "description": "Alquama soft smiling selfie in cream kurta"
+    },
+    {
+      "filename": "963264310802787.jpg",
+      "url": "/media/photos/963264310802787.jpg",
+      "outfit": "cream_kurta_5",
+      "description": "Alquama portrait in cream kurta"
+    },
+    {
+      "filename": "2654244951558308.jpg",
+      "url": "/media/photos/2654244951558308.jpg",
+      "outfit": "cream_kurta_6",
+      "description": "Alquama leaning selfie in cream kurta"
+    }
+  ],
+  "couple_photos": [
+    {
+      "filename": "381085193559797.jpg",
+      "url": "/media/photos/381085193559797.jpg",
+      "tag": "couple",
+      "description": "Nishant & Alquama outdoor couple selfie"
+    },
+    {
+      "filename": "278383117443309.jpg",
+      "url": "/media/photos/278383117443309.jpg",
+      "tag": "couple",
+      "description": "Nishant & Alquama smiling together"
+    },
+    {
+      "filename": "504495401473383.jpg",
+      "url": "/media/photos/504495401473383.jpg",
+      "tag": "kiss_couple",
+      "description": "Nishant & Alquama romantic kissing selfie"
+    }
+  ],
+  "stickers_by_mood": {
+    "kiss": [
+      "1070105880002501.png",
+      "1573846662838518.png",
+      "272549746421747.png",
+      "529233764205652.png",
+      "371179020301301.png"
+    ],
+    "love": [
+      "1435018950122395.png",
+      "1523526091274709.png",
+      "2523891204552446.png",
+      "272548386421883.png",
+      "344394765956738.png"
+    ],
+    "hug": [
+      "1070103106669445.png",
+      "1573846662838518.png",
+      "2523891204552446.png"
+    ],
+    "shy": [
+      "344394765956738.png",
+      "1435019743455649.png"
+    ],
+    "flower": [
+      "1435019743455649.png",
+      "396449203832519.png"
+    ],
+    "tease": [
+      "529233917538970.png",
+      "788173407923510.png"
+    ],
+    "angry": [
+      "441810786307920.png",
+      "131716057423002.png",
+      "629291457187171.png",
+      "529233967538965.png"
+    ],
+    "sad": [
+      "126361974215266.png",
+      "1747085322269386.png"
+    ],
+    "food": [
+      "144884992352434.png",
+      "193083087877295.png",
+      "392309670866345.png"
+    ],
+    "ok": [
+      "369239263222822.png"
+    ]
+  }
+}
+

@@ -21,7 +21,7 @@ export default function SettingsScreen() {
   const [backendUrl, setBackendUrl] = useState(api.getBaseUrl());
   const [groqKey, setGroqKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('qwen/qwen3.8-27b');
-  const [temperature, setTemperature] = useState('0.7');
+  const [temperature, setTemperature] = useState('0.78');
   const [responseLength, setResponseLength] = useState('Medium');
   const [hinglishStyle, setHinglishStyle] = useState('Natural');
 
@@ -57,7 +57,7 @@ export default function SettingsScreen() {
     api.setBaseUrl(backendUrl);
     const payload: any = {
       groq_model: selectedModel,
-      temperature: parseFloat(temperature) || 0.7,
+      temperature: parseFloat(temperature) || 0.78,
     };
     if (groqKey.trim()) {
       payload.groq_api_key = groqKey.trim();
@@ -66,13 +66,13 @@ export default function SettingsScreen() {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {}
-    Alert.alert('Settings Saved', 'Your companion configuration has been updated successfully ❤️');
+    Alert.alert('Settings Saved', 'Your preferences have been updated ❤️');
   };
 
   const handleClearHistory = () => {
     Alert.alert(
-      'Clear Chat History',
-      'Are you sure you want to clear your current active chat session? (Original Messenger history will remain untouched).',
+      'Clear Chat',
+      'Are you sure you want to start a fresh chat?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
             try {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             } catch (e) {}
-            Alert.alert('History Cleared', 'Active chat messages have been reset.');
+            Alert.alert('Chat Cleared', 'Chat messages have been reset.');
           },
         },
       ]
@@ -101,15 +101,15 @@ export default function SettingsScreen() {
         >
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings & AI Configuration ⚙️</Text>
+        <Text style={styles.headerTitle}>Chat Settings ⚙️</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Section 1: Groq AI Model */}
+        {/* Section 1: Response Engine */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>AI Brain & Model (Groq API)</Text>
+          <Text style={styles.sectionTitle}>Response Engine</Text>
           <Text style={styles.sectionSubtitle}>
-            Select the inference model for Jaan AI's conversational generation.
+            Select model & API configuration.
           </Text>
 
           <View style={styles.optionsList}>
@@ -145,19 +145,19 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* Section 2: Conversational Tone & Temperament */}
+        {/* Section 2: Mood & Expressiveness */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Conversational Temperament</Text>
+          <Text style={styles.sectionTitle}>Mood & Expressiveness</Text>
           <Text style={styles.sectionSubtitle}>
-            Adjust creativity, emotional warmth, and reply cadence.
+            Adjust warmth, spontaneity, and playful reply style.
           </Text>
 
-          <Text style={styles.fieldLabel}>Creativity (Temperature: {temperature})</Text>
+          <Text style={styles.fieldLabel}>Expressiveness (Temperature: {temperature})</Text>
           <View style={styles.pillRow}>
             {[
               { val: '0.5', label: 'Calm & Sweet (0.5)' },
-              { val: '0.7', label: 'Affectionate (0.7)' },
-              { val: '0.9', label: 'Playful & Teasing (0.9)' },
+              { val: '0.78', label: 'Affectionate (0.78)' },
+              { val: '0.9', label: 'Playful & Flirty (0.9)' },
             ].map((p) => (
               <TouchableOpacity
                 key={p.val}
@@ -241,11 +241,11 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Section 4: Data & Chat History */}
+        {/* Section 4: Data & Privacy */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Data & Privacy</Text>
           <Text style={styles.sectionSubtitle}>
-            Your Messenger chat history (1,813 messages) remains 100% private and stored locally.
+            Your chat stays 100% private and stored locally on your server.
           </Text>
 
           <TouchableOpacity
@@ -253,7 +253,7 @@ export default function SettingsScreen() {
             onPress={handleClearHistory}
             activeOpacity={0.8}
           >
-            <Text style={styles.clearBtnText}>Clear Active Chat Session</Text>
+            <Text style={styles.clearBtnText}>Clear Current Chat</Text>
           </TouchableOpacity>
         </View>
 

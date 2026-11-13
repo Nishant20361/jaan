@@ -11,7 +11,6 @@ import {
   Image,
   Modal,
   Dimensions,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -21,13 +20,17 @@ import { api, MessageItem, MediaItem } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
-const QUICK_EMOJIS = ['😘', '🥰', '😂', '🤪', '😉', '❤️', '💕', '👋', '🌹', '🥺', '💖', '🤗'];
+const QUICK_EMOJIS = ['😘', '🥰', '😂', '🤪', '😉', '❤️', '💕', '💋', '🌹', '🥺', '😏', '🙈'];
+const LOCAL_AVATAR_MODAL_KEY = '__LOCAL_ALQUAMA_DP__';
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [availableStickers, setAvailableStickers] = useState<MediaItem[]>([]);
@@ -38,20 +41,81 @@ export default function ChatScreen() {
   const typingDot2 = useRef(new Animated.Value(0)).current;
   const typingDot3 = useRef(new Animated.Value(0)).current;
 
-  // Initial greeting
+  // Load history or varied greeting + stickers
   useEffect(() => {
-    const initialGreeting: MessageItem = {
-      id: 'init-1',
-      role: 'companion',
-      content: 'Hlo jaan! 🥰 Kaise ho? Khana khaya tumne?',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages([initialGreeting]);
+    let mounted = true;
 
-    // Fetch available stickers
-    api.getStickers().then((stickers) => {
-      setAvailableStickers(stickers);
-    });
+    async function init() {
+      api.getStickers().then((stickers) => {
+        if (mounted) setAvailableStickers(stickers);
+      });
+
+      const history = await api.getHistory('default', 50);
+      if (!mounted) return;
+
+      if (history && history.length > 0) {
+        let lastUserIdx = -1;
+        history.forEach((m: any, idx: number) => {
+          if (m.role === 'user') lastUserIdx = idx;
+        });
+
+        const formatted: MessageItem[] = [];
+        history.forEach((m: any, idx: number) => {
+          const timeStr = m.created_at
+            ? new Date(m.created_at + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const role = m.role === 'user' ? 'user' : 'companion';
+          const cleanContent = m.content === '[Sent Sticker]' ? '' : (m.content || '');
+          const resolvedMedia = api.resolveMediaUrl(m.media_uri);
+          const isLastAnsweredUser = idx === lastUserIdx && lastUserIdx < history.length - 1;
+
+          if (m.media_type === 'sticker' && resolvedMedia && cleanContent) {
+            formatted.push({
+              id: `hist-${m.id}-txt`,
+              role,
+              content: cleanContent,
+              timestamp: timeStr,
+            });
+            formatted.push({
+              id: `hist-${m.id}-stk`,
+              role,
+              content: '',
+              media_uri: resolvedMedia,
+              media_type: 'sticker',
+              timestamp: timeStr,
+              receipt: isLastAnsweredUser ? 'seen' : undefined,
+            });
+          } else {
+            formatted.push({
+              id: `hist-${m.id}`,
+              role,
+              content: cleanContent,
+              media_uri: resolvedMedia,
+              media_type: m.media_type || undefined,
+              timestamp: timeStr,
+              receipt: isLastAnsweredUser ? 'seen' : undefined,
+            });
+          }
+        });
+        setMessages(formatted);
+        return;
+      }
+
+      const greetingRes = await api.getGreeting();
+      if (!mounted) return;
+      const initialGreeting: MessageItem = {
+        id: 'init-1',
+        role: 'companion',
+        content: greetingRes?.greeting || 'Hlo jaan 😘 kya haal hai aaj?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages([initialGreeting]);
+    }
+
+    init();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Typing dots animation
@@ -63,20 +127,20 @@ export default function ChatScreen() {
             Animated.delay(delay),
             Animated.timing(dot, {
               toValue: -6,
-              duration: 350,
+              duration: 340,
               useNativeDriver: true,
             }),
             Animated.timing(dot, {
               toValue: 0,
-              duration: 350,
+              duration: 340,
               useNativeDriver: true,
             }),
           ])
         );
       };
       const a1 = animateDot(typingDot1, 0);
-      const a2 = animateDot(typingDot2, 180);
-      const a3 = animateDot(typingDot3, 360);
+      const a2 = animateDot(typingDot2, 170);
+      const a3 = animateDot(typingDot3, 340);
       a1.start();
       a2.start();
       a3.start();
@@ -89,52 +153,128 @@ export default function ChatScreen() {
     }
   }, [isTyping]);
 
-  const handleSend = async (overrideText?: string, stickerUri?: string) => {
+  const handleSend = async (overrideText?: string, stickerRelativeUrl?: string) => {
+    if (isSending) return;
     const textToSend = overrideText !== undefined ? overrideText : inputText.trim();
-    if (!textToSend && !stickerUri) return;
+    if (!textToSend && !stickerRelativeUrl) return;
 
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (e) {}
 
+    const userMsgId = `u-${Date.now()}`;
+    const fullStickerUri = api.resolveMediaUrl(stickerRelativeUrl);
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     const userMsg: MessageItem = {
-      id: Date.now().toString(),
+      id: userMsgId,
       role: 'user',
       content: textToSend,
-      media_uri: stickerUri,
-      media_type: stickerUri ? 'sticker' : undefined,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      media_uri: fullStickerUri,
+      media_type: fullStickerUri ? 'sticker' : undefined,
+      receipt: 'sent',
+      timestamp: nowTime,
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    // Strip old receipts and append new user message as "Sent ✓"
+    setMessages((prev) => [
+      ...prev.map((m) => (m.receipt ? { ...m, receipt: undefined } : m)),
+      userMsg,
+    ]);
     if (overrideText === undefined) setInputText('');
     setShowEmojiPicker(false);
     setShowStickerPicker(false);
-    setIsTyping(true);
+    setIsSending(true);
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    }, 80);
 
     try {
-      const query = textToSend || (stickerUri ? '[Sent Sticker]' : 'Hlo');
-      const res = await api.sendMessage(query);
-      
-      const aiMsg: MessageItem = {
-        id: (Date.now() + 1).toString(),
-        role: 'companion',
-        content: res.response,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      const query = textToSend || (stickerRelativeUrl ? '[Sent Sticker]' : 'Hlo');
+      const fetchPromise = api.sendMessage(
+        query,
+        'default',
+        undefined,
+        undefined,
+        stickerRelativeUrl || undefined,
+        stickerRelativeUrl ? 'sticker' : undefined
+      );
 
-      setMessages((prev) => [...prev, aiMsg]);
+      // Simulate realistic reading pause -> "✓✓ Seen" -> "typing..."
+      await sleep(480);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === userMsgId ? { ...m, receipt: 'seen' } : m))
+      );
+
+      await sleep(360);
+      setIsTyping(true);
+      const typingStartedAt = Date.now();
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 60);
+
+      const res = await fetchPromise;
+      const minTypingMs = res.typing_delay_ms || 1100;
+      const elapsed = Date.now() - typingStartedAt;
+      if (elapsed < minTypingMs) {
+        await sleep(minTypingMs - elapsed);
+      }
+
+      setIsTyping(false);
+      const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (res.photo_url) {
+        const photoMsg: MessageItem = {
+          id: `c-photo-${Date.now()}`,
+          role: 'companion',
+          content: res.response || '',
+          media_uri: api.resolveMediaUrl(res.photo_url),
+          media_type: 'photo',
+          timestamp: replyTime,
+        };
+        setMessages((prev) => [...prev, photoMsg]);
+      } else if (res.sticker_url) {
+        if (res.response) {
+          const textReply: MessageItem = {
+            id: `c-txt-${Date.now()}`,
+            role: 'companion',
+            content: res.response,
+            timestamp: replyTime,
+          };
+          setMessages((prev) => [...prev, textReply]);
+          setIsTyping(true);
+          await sleep(480);
+          setIsTyping(false);
+        }
+        const stickerReply: MessageItem = {
+          id: `c-stk-${Date.now() + 1}`,
+          role: 'companion',
+          content: '',
+          media_uri: api.resolveMediaUrl(res.sticker_url),
+          media_type: 'sticker',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, stickerReply]);
+      } else {
+        const textReply: MessageItem = {
+          id: `c-txt-${Date.now()}`,
+          role: 'companion',
+          content: res.response,
+          timestamp: replyTime,
+        };
+        setMessages((prev) => [...prev, textReply]);
+      }
+
       try {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch (e) {}
     } catch (err) {
       console.error('Chat error:', err);
+      setIsTyping(false);
     } finally {
       setIsTyping(false);
+      setIsSending(false);
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -142,81 +282,113 @@ export default function ChatScreen() {
   };
 
   const handleSendSticker = (sticker: MediaItem) => {
-    const fullUrl = sticker.url.startsWith('http')
-      ? sticker.url
-      : `${api.getBaseUrl()}${sticker.url}`;
-    handleSend('', fullUrl);
+    handleSend('', sticker.url);
   };
 
   const renderMessageItem = ({ item }: { item: MessageItem }) => {
     const isUser = item.role === 'user';
     return (
-      <View
-        style={[
-          styles.messageRow,
-          isUser ? styles.messageRowUser : styles.messageRowCompanion,
-        ]}
-      >
-        {!isUser && (
-          <Image
-            source={require('../assets/avatar.png')}
-            style={styles.bubbleAvatar}
-          />
-        )}
-
-        <View style={styles.bubbleWrapper}>
-          {item.media_uri && item.media_type === 'sticker' ? (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => setSelectedImage(item.media_uri || null)}
-            >
-              <Image
-                source={{ uri: item.media_uri }}
-                style={styles.stickerImage}
-                resizeMode="contain"
-              />
-              <Text
-                style={[
-                  styles.timestampText,
-                  isUser ? styles.timestampUser : styles.timestampCompanion,
-                ]}
-              >
-                {item.timestamp}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <LinearGradient
-              colors={
-                isUser
-                  ? ['#ff3b88', '#d81b60']
-                  : ['#28133a', '#1a0b26']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[
-                styles.bubble,
-                isUser ? styles.bubbleUser : styles.bubbleCompanion,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  isUser ? styles.textUser : styles.textCompanion,
-                ]}
-              >
-                {item.content}
-              </Text>
-              <Text
-                style={[
-                  styles.timestampText,
-                  isUser ? styles.timestampUser : styles.timestampCompanion,
-                ]}
-              >
-                {item.timestamp}
-              </Text>
-            </LinearGradient>
+      <View style={styles.messageGroup}>
+        <View
+          style={[
+            styles.messageRow,
+            isUser ? styles.messageRowUser : styles.messageRowCompanion,
+          ]}
+        >
+          {!isUser && (
+            <Image
+              source={require('../assets/alquama_dp.jpg')}
+              style={styles.bubbleAvatar}
+            />
           )}
+
+          <View style={styles.bubbleWrapper}>
+            {item.media_uri && item.media_type === 'sticker' ? (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setSelectedImage(item.media_uri || null)}
+              >
+                <Image
+                  source={{ uri: item.media_uri }}
+                  style={styles.stickerImage}
+                  resizeMode="contain"
+                />
+                <Text
+                  style={[
+                    styles.timestampText,
+                    isUser ? styles.timestampUser : styles.timestampCompanion,
+                  ]}
+                >
+                  {item.timestamp}
+                </Text>
+              </TouchableOpacity>
+            ) : item.media_uri && item.media_type === 'photo' ? (
+              <LinearGradient
+                colors={['#28133a', '#1a0b26']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.bubble, styles.bubbleCompanion, styles.photoBubble]}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => setSelectedImage(item.media_uri || null)}
+                >
+                  <Image
+                    source={{ uri: item.media_uri }}
+                    style={styles.photoImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+                {!!item.content && (
+                  <Text style={[styles.messageText, styles.textCompanion, styles.photoCaption]}>
+                    {item.content}
+                  </Text>
+                )}
+                <Text style={[styles.timestampText, styles.timestampCompanion, { paddingHorizontal: 6, paddingBottom: 4 }]}>
+                  {item.timestamp}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <LinearGradient
+                colors={isUser ? ['#ff3b88', '#d81b60'] : ['#28133a', '#1a0b26']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[
+                  styles.bubble,
+                  isUser ? styles.bubbleUser : styles.bubbleCompanion,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.messageText,
+                    isUser ? styles.textUser : styles.textCompanion,
+                  ]}
+                >
+                  {item.content}
+                </Text>
+                <Text
+                  style={[
+                    styles.timestampText,
+                    isUser ? styles.timestampUser : styles.timestampCompanion,
+                  ]}
+                >
+                  {item.timestamp}
+                </Text>
+              </LinearGradient>
+            )}
+          </View>
         </View>
+
+        {isUser && item.receipt && (
+          <Text
+            style={[
+              styles.receiptText,
+              item.receipt === 'seen' && styles.receiptSeenText,
+            ]}
+          >
+            {item.receipt === 'seen' ? '✓✓ Seen' : 'Sent ✓'}
+          </Text>
+        )}
       </View>
     );
   };
@@ -226,7 +398,7 @@ export default function ChatScreen() {
       colors={['#140722', '#0d0614', '#08030c']}
       style={styles.container}
     >
-      {/* Companion Chat Header */}
+      {/* Chat Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -239,29 +411,24 @@ export default function ChatScreen() {
         <TouchableOpacity
           style={styles.headerProfile}
           activeOpacity={0.8}
-          onPress={() => router.push('/memories')}
+          onPress={() => setSelectedImage(LOCAL_AVATAR_MODAL_KEY)}
         >
           <View style={styles.avatarMiniContainer}>
             <Image
-              source={require('../assets/avatar.png')}
+              source={require('../assets/alquama_dp.jpg')}
               style={styles.avatarMini}
             />
             <View style={styles.miniOnlineDot} />
           </View>
           <View>
             <Text style={styles.headerTitle}>Alquama ❤️</Text>
-            <Text style={styles.headerSubtitle}>Online • Jaan AI</Text>
+            <Text style={[styles.headerSubtitle, isTyping && styles.headerSubtitleTyping]}>
+              {isTyping ? 'typing...' : 'Online'}
+            </Text>
           </View>
         </TouchableOpacity>
 
         <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={() => router.push('/memories')}
-            style={styles.headerActionBtn}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.headerActionIcon}>📸</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push('/settings')}
             style={styles.headerActionBtn}
@@ -284,28 +451,18 @@ export default function ChatScreen() {
           isTyping ? (
             <View style={styles.typingContainer}>
               <Image
-                source={require('../assets/avatar.png')}
+                source={require('../assets/alquama_dp.jpg')}
                 style={styles.bubbleAvatar}
               />
               <View style={styles.typingBubble}>
-                <Text style={styles.typingLabel}>Alquama is typing</Text>
                 <Animated.View
-                  style={[
-                    styles.typingDot,
-                    { transform: [{ translateY: typingDot1 }] },
-                  ]}
+                  style={[styles.typingDot, { transform: [{ translateY: typingDot1 }] }]}
                 />
                 <Animated.View
-                  style={[
-                    styles.typingDot,
-                    { transform: [{ translateY: typingDot2 }] },
-                  ]}
+                  style={[styles.typingDot, { transform: [{ translateY: typingDot2 }] }]}
                 />
                 <Animated.View
-                  style={[
-                    styles.typingDot,
-                    { transform: [{ translateY: typingDot3 }] },
-                  ]}
+                  style={[styles.typingDot, { transform: [{ translateY: typingDot3 }] }]}
                 />
               </View>
             </View>
@@ -317,7 +474,7 @@ export default function ChatScreen() {
       {showEmojiPicker && (
         <View style={styles.drawerContainer}>
           <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Expressive Emojis</Text>
+            <Text style={styles.drawerTitle}>Emojis</Text>
             <TouchableOpacity onPress={() => setShowEmojiPicker(false)}>
               <Text style={styles.drawerClose}>✕</Text>
             </TouchableOpacity>
@@ -345,7 +502,7 @@ export default function ChatScreen() {
       {showStickerPicker && (
         <View style={styles.drawerContainer}>
           <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Original Messenger Stickers</Text>
+            <Text style={styles.drawerTitle}>Stickers ❤️</Text>
             <TouchableOpacity onPress={() => setShowStickerPicker(false)}>
               <Text style={styles.drawerClose}>✕</Text>
             </TouchableOpacity>
@@ -355,9 +512,7 @@ export default function ChatScreen() {
             data={availableStickers}
             keyExtractor={(item) => item.uri}
             renderItem={({ item }) => {
-              const fullUrl = item.url.startsWith('http')
-                ? item.url
-                : `${api.getBaseUrl()}${item.url}`;
+              const fullUrl = api.resolveMediaUrl(item.url) || '';
               return (
                 <TouchableOpacity
                   style={styles.stickerThumbBtn}
@@ -404,7 +559,7 @@ export default function ChatScreen() {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Type a loving message in Hinglish..."
+            placeholder="Message..."
             placeholderTextColor="#89759c"
             multiline
             maxLength={1000}
@@ -413,14 +568,14 @@ export default function ChatScreen() {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              !inputText.trim() && styles.sendButtonDisabled,
+              (!inputText.trim() || isSending) && styles.sendButtonDisabled,
             ]}
             onPress={() => handleSend()}
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || isSending}
           >
             <LinearGradient
               colors={
-                inputText.trim()
+                inputText.trim() && !isSending
                   ? ['#ff3b88', '#a824e8']
                   : ['#442354', '#2d143b']
               }
@@ -441,13 +596,19 @@ export default function ChatScreen() {
           >
             <Text style={styles.modalCloseText}>✕ Close</Text>
           </TouchableOpacity>
-          {selectedImage && (
+          {selectedImage === LOCAL_AVATAR_MODAL_KEY ? (
+            <Image
+              source={require('../assets/alquama_dp.jpg')}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          ) : selectedImage ? (
             <Image
               source={{ uri: selectedImage }}
               style={styles.modalImage}
               resizeMode="contain"
             />
-          )}
+          ) : null}
         </View>
       </Modal>
     </LinearGradient>
@@ -515,8 +676,12 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#ff80ab',
+    color: '#9ee8be',
     fontWeight: '500',
+  },
+  headerSubtitleTyping: {
+    color: '#ff80ab',
+    fontWeight: '600',
   },
   headerActions: {
     flexDirection: 'row',
@@ -537,9 +702,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  messageGroup: {
+    marginVertical: 4,
+  },
   messageRow: {
     flexDirection: 'row',
-    marginVertical: 6,
     alignItems: 'flex-end',
   },
   messageRowUser: {
@@ -547,6 +714,17 @@ const styles = StyleSheet.create({
   },
   messageRowCompanion: {
     justifyContent: 'flex-start',
+  },
+  receiptText: {
+    alignSelf: 'flex-end',
+    fontSize: 10,
+    color: 'rgba(215, 195, 240, 0.72)',
+    marginTop: 3,
+    paddingRight: 4,
+  },
+  receiptSeenText: {
+    color: '#ff80ab',
+    fontWeight: '600',
   },
   bubbleAvatar: {
     width: 28,
@@ -575,6 +753,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 120, 180, 0.25)',
   },
+  photoBubble: {
+    padding: 5,
+    paddingBottom: 6,
+    overflow: 'hidden',
+  },
+  photoImage: {
+    width: width * 0.62,
+    height: width * 0.72,
+    borderRadius: 14,
+    backgroundColor: '#1d0b2e',
+  },
+  photoCaption: {
+    paddingHorizontal: 6,
+    paddingTop: 7,
+  },
   messageText: {
     fontSize: 15,
     lineHeight: 21,
@@ -597,8 +790,8 @@ const styles = StyleSheet.create({
     color: 'rgba(215, 195, 240, 0.65)',
   },
   stickerImage: {
-    width: 130,
-    height: 130,
+    width: 126,
+    height: 126,
   },
   typingContainer: {
     flexDirection: 'row',
@@ -612,21 +805,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 90, 160, 0.3)',
     borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  typingLabel: {
-    color: '#ff80ab',
-    fontSize: 12,
-    fontWeight: '500',
-    marginRight: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
   },
   typingDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#ff3b88',
-    marginHorizontal: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ff80ab',
+    marginHorizontal: 3,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -737,14 +924,14 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'rgba(255, 59, 136, 0.3)',
     borderRadius: 20,
+    zIndex: 10,
   },
   modalCloseText: {
     color: '#ffffff',
     fontWeight: '700',
   },
   modalImage: {
-    width: width * 0.85,
-    height: width * 0.85,
+    width: width * 0.88,
+    height: width * 0.88,
   },
 });
-
