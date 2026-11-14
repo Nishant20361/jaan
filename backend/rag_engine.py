@@ -41,6 +41,15 @@ NOISE_PATTERNS = (
 )
 
 
+GENERIC_CHITCHAT_PATTERNS = {
+    "hlo", "hello", "hi", "hey", "suno", "suno na", "kya kar rahi ho", "kya kr rhi ho",
+    "kya kar rahe ho", "kaha ho", "kha ho", "kuch nahi", "kuch ni", "acha", "accha",
+    "theek hai", "thik hai", "ok", "hmm", "hmmm", "love u", "love you", "miss you",
+    "miss u", "yaad aa rahi", "khana khai", "khana khayi", "khana khaya", "photo bhejo",
+    "pic bhejo", "kiss do", "good night", "gn", "so jao", "good morning", "gm",
+    "kuch bolo", "aur batao", "or btao", "kya chal raha", "kaise ho", "kse ho"
+}
+
 class RAGEngine:
     def __init__(self):
         self.chunks_file = os.path.join(DATA_DIR, "conversation_chunks.json")
@@ -98,10 +107,15 @@ class RAGEngine:
         self.avg_chunk_length = (total_length / self.doc_count) if self.doc_count > 0 else 1.0
         print(f"[RAGEngine] Loaded {self.doc_count} chunks and {len(self.messages)} messages. Vocabulary size: {len(self.index)}")
 
-    def search_chunks(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    def search_chunks(self, query: str, top_k: int = 3, min_score: float = 2.8) -> List[Dict[str, Any]]:
+        clean_q = re.sub(r'[^a-zA-Z0-9\s]', '', (query or '').lower()).strip()
+        # Generic daily chitchat should never pull random historical family/school drama chunks
+        if clean_q in GENERIC_CHITCHAT_PATTERNS or len(clean_q.split()) <= 2:
+            return []
+
         query_tokens = self._tokenize(query)
         if not query_tokens or self.doc_count == 0:
-            return [c for c in self.chunks if len(c.get('messages', [])) >= 6][:top_k]
+            return []
 
         k1 = 1.5
         b = 0.75
@@ -119,12 +133,8 @@ class RAGEngine:
                     tf_norm = (tf * (k1 + 1.0)) / (tf + k1 * (1.0 - b + b * (doc_len / self.avg_chunk_length)))
                     scores[chunk_idx] += idf * tf_norm
 
-        scored_chunks = [(score, self.chunks[idx]) for idx, score in enumerate(scores) if score > 0]
+        scored_chunks = [(score, self.chunks[idx]) for idx, score in enumerate(scores) if score >= min_score]
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
-
-        if not scored_chunks:
-            rich = [c for c in self.chunks if len(c.get('messages', [])) >= 8]
-            return rich[:top_k] if rich else self.chunks[:top_k]
 
         return [chunk for _, chunk in scored_chunks[:top_k]]
 
