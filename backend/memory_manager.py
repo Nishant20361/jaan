@@ -136,6 +136,137 @@ class MemoryManager:
             conn.commit()
             return cursor.rowcount
 
+    def search_past_conversations(
+        self,
+        session_id: str = "default",
+        query: str = "",
+        exclude_ids: Optional[List[int]] = None,
+        limit: int = 4
+    ) -> List[Dict[str, Any]]:
+        """
+        Search older conversations in chat_history for relevant past messages/topics.
+        Excludes recent messages so only past/forgotten context is recalled.
+        """
+        if not query or not query.strip():
+            return []
+
+        exclude_ids = exclude_ids or []
+        import re
+        stop_words = {
+            "kya", "hai", "ho", "hu", "hain", "ko", "ka", "ke", "ki", "se", "me", "mai", "aur", "or",
+            "to", "bhi", "tha", "thi", "the", "batao", "bolo", "na", "hlo", "hello", "hi", "hey",
+            "jaan", "babu", "accha", "acha", "theek", "thik", "ok", "plz", "please", "suno",
+            "aaj", "ab", "abhi", "kar", "kr", "raha", "rahi", "rhe", "rhi", "karoge", "karenge",
+            "mujhe", "tumhe", "humko", "aapko", "mera", "meri", "mere", "tumhara", "tumhari", "tumhare"
+        }
+        words = re.findall(r'\b[a-zA-Z0-9_]{3,}\b', query.lower())
+        keywords = [w for w in words if w not in stop_words]
+
+        q_lower = query.lower()
+        is_recall_query = any(k in q_lower for k in ["yaad", "remember", "pata", "bola tha", "kaha tha", "pehle", "kal", "pichli"])
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            results = []
+
+            if keywords:
+                like_clauses = " OR ".join(["content LIKE ?" for _ in keywords])
+                params = [session_id]
+                exclude_clause = ""
+                if exclude_ids:
+                    placeholders = ",".join(["?" for _ in exclude_ids])
+                    exclude_clause = f"AND id NOT IN ({placeholders})"
+                    params.extend(exclude_ids)
+
+                params.extend([f"%{kw}%" for kw in keywords])
+                params.append(limit * 2)
+
+                query_sql = f"""
+                    SELECT id, role, content, media_uri, media_type, created_at
+                    FROM chat_history
+                    WHERE session_id = ?
+                      {exclude_clause}
+                      AND ({like_clauses})
+                    ORDER BY id DESC
+                    LIMIT ?
+                """
+                cursor.execute(query_sql, params)
+                rows = cursor.fetchall()
+                for row in rows:
+                    msg_dict = dict(row)
+                    if msg_dict["role"] == "user":
+                        cursor.execute(
+                            "SELECT content FROM chat_history WHERE session_id = ? AND id > ? AND role = 'companion' ORDER BY id ASC LIMIT 1",
+                            (session_id, msg_dict["id"])
+                        )
+                        reply_row = cursor.fetchone()
+                        msg_dict["reply_content"] = reply_row["content"] if reply_row else ""
+                    results.append(msg_dict)
+                    if len(results) >= limit:
+                        break
+
+            # If it's an explicit recall question and few/no keyword matches, fetch earlier highlights
+            if is_recall_query and len(results) < limit:
+                params = [session_id]
+                exclude_clause = ""
+                if exclude_ids:
+                    placeholders = ",".join(["?" for _ in exclude_ids])
+                    exclude_clause = f"AND id NOT IN ({placeholders})"
+                    params.extend(exclude_ids)
+
+                cursor.execute(f"""
+                    SELECT id, role, content, media_uri, media_type, created_at
+                    FROM chat_history
+                    WHERE session_id = ?
+                      {exclude_clause}
+                      AND role = 'user'
+                      AND length(content) > 6
+                    ORDER BY id DESC
+                    LIMIT ?
+                """, (*params, limit - len(results)))
+                for row in cursor.fetchall():
+                    r_dict = dict(row)
+                    cursor.execute(
+                        "SELECT content FROM chat_history WHERE session_id = ? AND id > ? AND role = 'companion' ORDER BY id ASC LIMIT 1",
+                        (session_id, r_dict["id"])
+                    )
+                    reply_row = cursor.fetchone()
+                    r_dict["reply_content"] = reply_row["content"] if reply_row else ""
+                    if not any(x["id"] == r_dict["id"] for x in results):
+                        results.append(r_dict)
+
+            return results
+
+    def auto_extract_facts(self, user_message: str):
+        """
+        Automatically detect and remember key facts Nishant shares about his life,
+        routines, preferences, or events so Alquama remembers them across sessions.
+        """
+        if not user_message or len(user_message) < 8:
+            return
+
+        import re
+        q = user_message.strip()
+        lower = q.lower()
+
+        patterns = [
+            (r"(?:mera|meri|mere)\s+(birthday|bday|janamdin)\s+(?:hai\s+)?([^\.,!\?]+)", "Birthday"),
+            (r"(?:mujhe|humko)\s+([^\.,!\?]+)\s+(?:bahut\s+)?(?:pasand|achha lagta|fav|favourite)\s+hai", "Preference"),
+            (r"(?:mera|meri|mere)\s+(favourite|fav)\s+([^\.,!\?]+)\s+hai", "Favorite"),
+            (r"(?:aaj|kal)\s+(?:mera|meri)\s+(exam|interview|meeting|test|presentation)\s+hai", "Event"),
+            (r"(?:meri|humari)\s+(tabiyat|health)\s+(kharab|theek nahi|down)\s+hai", "Health"),
+            (r"(?:mai|hum)\s+([a-zA-Z0-9_\s]+)\s+(?:me\s+kaam\s+karta\s+hu|me\s+job\s+karta\s+hu)", "Work/Job"),
+        ]
+
+        for pat, tag in patterns:
+            match = re.search(pat, lower)
+            if match:
+                fact_text = q
+                existing = self.get_memories()
+                if not any(m.get("content") == fact_text for m in existing):
+                    self.add_memory(title=f"Nishant's {tag}", content=fact_text, tag="auto_fact")
+                break
+
     def get_setting(self, key: str, default: Optional[str] = None) -> Optional[str]:
         with self._get_connection() as conn:
             cursor = conn.cursor()

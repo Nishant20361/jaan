@@ -125,12 +125,24 @@ async def chat(request: ChatRequest):
 
     user_text = request.message.strip() or "[Sent Sticker]"
 
-    # 1. Fetch prior conversation history BEFORE saving current user message (prevents duplicate turn in prompt)
-    history = memory_manager.get_chat_history(session_id=request.session_id, limit=14)
+    # 1. Fetch prior conversation history BEFORE saving current user message (deep context: up to 36 turns)
+    history = memory_manager.get_chat_history(session_id=request.session_id, limit=36)
+    recent_ids = [h["id"] for h in history if "id" in h]
     recent_photos = memory_manager.get_recent_media_uris(session_id=request.session_id, media_type="photo", limit=10)
     recent_stickers = memory_manager.get_recent_media_uris(session_id=request.session_id, media_type="sticker", limit=8)
 
-    # 2. Save user message to chat history
+    # 2. Search long-term past chat memory (older conversations matching topic/keywords)
+    recalled_memories = memory_manager.search_past_conversations(
+        session_id=request.session_id,
+        query=user_text,
+        exclude_ids=recent_ids,
+        limit=4
+    )
+
+    # 3. Auto-detect & remember key personal facts Nishant shares
+    memory_manager.auto_extract_facts(user_text)
+
+    # 4. Save user message to chat history
     memory_manager.save_chat_message(
         session_id=request.session_id,
         role="user",
@@ -139,15 +151,16 @@ async def chat(request: ChatRequest):
         media_type=request.media_type
     )
 
-    # 3. Fetch user custom notes if any
+    # 5. Fetch user custom notes if any
     user_memories = memory_manager.get_memories()
     user_notes = [f"{m['title']}: {m['content']}" for m in user_memories]
 
-    # 4. Generate natural response + optional photo or sticker
+    # 6. Generate natural response with deep conversational memory & recall
     result = await ai_engine.generate_response(
         user_message=user_text,
         conversation_history=history,
         user_notes=user_notes,
+        recalled_memories=recalled_memories,
         recent_photo_uris=recent_photos,
         recent_sticker_uris=recent_stickers,
         model=request.model,
@@ -155,7 +168,7 @@ async def chat(request: ChatRequest):
         max_tokens=request.max_tokens
     )
 
-    # 5. Save companion response (text + photo/sticker if attached)
+    # 7. Save companion response (text + photo/sticker if attached)
     comp_media_uri = result.get("photo_url") or result.get("sticker_url")
     comp_media_type = "photo" if result.get("photo_url") else ("sticker" if result.get("sticker_url") else None)
     memory_manager.save_chat_message(
@@ -185,7 +198,16 @@ async def chat_stream(request: ChatRequest):
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    history = memory_manager.get_chat_history(session_id=request.session_id, limit=14)
+    history = memory_manager.get_chat_history(session_id=request.session_id, limit=36)
+    recent_ids = [h["id"] for h in history if "id" in h]
+    recalled_memories = memory_manager.search_past_conversations(
+        session_id=request.session_id,
+        query=request.message,
+        exclude_ids=recent_ids,
+        limit=4
+    )
+    memory_manager.auto_extract_facts(request.message)
+
     memory_manager.save_chat_message(
         session_id=request.session_id,
         role="user",
@@ -200,6 +222,7 @@ async def chat_stream(request: ChatRequest):
             user_message=request.message,
             conversation_history=history,
             user_notes=user_notes,
+            recalled_memories=recalled_memories,
             model=request.model,
             temperature=request.temperature,
             max_tokens=request.max_tokens

@@ -50,7 +50,7 @@ export default function ChatScreen() {
         if (mounted) setAvailableStickers(stickers);
       });
 
-      const history = await api.getHistory('default', 50);
+      const history = await api.getHistory('default', 100);
       if (!mounted) return;
 
       if (history && history.length > 0) {

@@ -74,7 +74,7 @@ class ApiService {
     return null;
   }
 
-  public async getHistory(sessionId: string = 'default', limit: number = 50): Promise<any[]> {
+  public async getHistory(sessionId: string = 'default', limit: number = 100): Promise<any[]> {
     try {
       const res = await fetch(
         `${this.baseUrl}/api/chat/history?session_id=${encodeURIComponent(sessionId)}&limit=${limit}`

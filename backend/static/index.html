@@ -1356,7 +1356,7 @@
 
     async function initChatHistory() {
       try {
-        const res = await fetch('/api/chat/history?session_id=web_session&limit=50');
+        const res = await fetch('/api/chat/history?session_id=web_session&limit=100');
         if (res.ok) {
           const history = await res.json();
           if (history && history.length > 0) {
