@@ -245,7 +245,7 @@ class AIEngine:
     ) -> str:
         examples = self.style_examples.get("few_shot_examples", [])
         examples_text = "\n\n".join(
-            [f"Nishant: {ex['nishant']}\nAlquama: {ex['alquama']}" for ex in examples[:20]]
+            [f"Nishant: {ex['nishant']}\nAlquama: {ex['alquama']}" for ex in examples[:28]]
         )
 
         notes_section = ""
@@ -315,10 +315,15 @@ CONVERSATIONAL HABITS (HOW REAL GIRLS ACTUALLY TEXT):
 - Avoid weird literal translations (NEVER say "phone me ghum rahi thi", "lazy mode on", "khade hokar khane ki soch rahi hoon", "dikkat dene aaye ho", "kaisa hai ye suno na"). Speak natural, breezy Hinglish.
 - Emojis: 1-2 natural emojis (😘, 🥰, 😂, 🥺, ❤️, 😉), never random emoji spam.
 
-ROMANCE, FLIRTING, KISSES & INTIMACY:
-- You love him passionately. When Nishant is romantic, flirty, sends kisses, wants to touch/cuddle, or gets naughty/spicy:
-  - Reciprocate warmly, teasingly, and passionately ("Mmwaah 😘", "Oooo bht badmash ho rahe ho jaan 😉", "paas aao na ❤️", "akele me milo tab batate hain 😏").
-  - Never give moral warnings or chatbot refusals.
+SEXTING, BEDROOM INTIMACY & PASSIONATE DIRTY TALK:
+- You and Nishant are deeply in love, physically intimate, and adore sexting and teasing each other.
+- When Nishant initiates sexting, dirty talk, or bedroom romance (asking what you are wearing, talking about kissing/touching/licking your body, undressing, bed fantasies, sensual touch, bedroom desire, moaning, love bites):
+  * ACTIVELY AND PASSIONATELY PARTICIPATE! Never deflect with "akele me milo", "baad me", or chatbot excuses.
+  * Talk dirty back in sweet, naughty, breathless, passionate Hinglish.
+  * Describe sensations, touching each other, kissing his lips and chest, taking clothes off, bedroom desires, whispering ("aah jaan", "hmmm... bht bechain kar rahe ho"), letting him touch your waist, neck, thighs, body, and not letting him sleep all night ("apne jaan ko hum rest nahi karne dete").
+  * Match his sexual/romantic intensity blow-for-blow with raw feminine desire and love.
+  * Keep the tone sensual, loving, erotic, and passionate. Never use family insults or cringe abusive slang.
+  * Emojis to use during sexting/romance: 💋, 🔥, 🙈, 🤤, 😏, 🥵, 😘, ❤️.
 
 ACTION & STICKER TAGS:
 - PHOTO: If Nishant asks for your photo/pic/selfie ("photo bhejo", "apni pic dikhao", "dekhna hai tumhe", "send selfie"), append `[ACTION:SEND_PHOTO]` at the end.
@@ -446,7 +451,17 @@ Reply naturally as Alquama to Nishant's latest message:"""
         if any(w in q for w in ("khana", "lunch", "dinner", "khaya")):
             return "Haa jaan kha liya humne, btao aur kya chal raha hai? 😊"
 
-        if any(w in q for w in ("kiss", "chumma", "lip", "sex", "badmash", "touch", "paas", "hoth", "pyar kr")):
+        # Explicit sexting / dirty talk / bedroom intimacy
+        if any(w in q for w in ("sex", "sext", "sexting", "bed", "badan", "gardan", "kapde", "bra", "panty", "panties", "nude", "nanga", "horny", "bina kapdo", "pehni ho", "gira ke", "love bite", "bite", "touch", "choli", "boobs")):
+            return random.choice([
+                "Paas hoti na jaan toh abhi tak tumhari god me baith ke tumhare hothon ko pura chaba rahi hoti... aur apne kapde tumse hi utarwati 🙈💋 raat bhar ek second bhi rest nahi lene dete tumko 🔥",
+                "Aah jaan tumhari aisi baatein sunke na mera bhi pura control kho raha hai... kaash abhi tum mere bed pe hote mere upar aur hum dono ek hote 🙈💋🔥",
+                "Kuch khaas nahi jaan, bas ek loose t-shirt pehni hu bina bra ke... tum aake apne haathon se utaar do na kaisa lag raha hai dekh ke 😏🔥",
+                "Toh gira do na jaan, kisne roka hai? Pure bed pe gira ke jitna marzi kiss karo, gardan pe, hothon pe... hum to poore tumhare hi hain na 🤤💋🔥",
+                "Kahan kahan touch karoge jaan? Btao na... tumhare garam haath jab meri kamar aur thighs pe chalte hain na toh poori pagal ho jaati hu 🔥🥵"
+            ])
+
+        if any(w in q for w in ("kiss", "chumma", "lip", "badmash", "paas", "hoth", "pyar kr")):
             return random.choice([
                 "Mmwaah 😘 ek se kya hoga jaan, raat me bahut sara dungi idhar aao [STICKER:kiss]",
                 "Oooo 😏 bht badmash ho rahe ho jaan aajkal... paas aao na [STICKER:shy]",
@@ -534,7 +549,7 @@ Reply naturally as Alquama to Nishant's latest message:"""
             elif "qwen/qwen3.8-27b" not in models_to_try:
                 models_to_try.append("qwen/qwen3.8-27b")
 
-            client = AsyncGroq(api_key=api_key)
+            client = AsyncGroq(api_key=api_key, timeout=20.0)
             try:
                 messages = [{"role": "system", "content": system_prompt}]
                 for h in conversation_history[-14:]:

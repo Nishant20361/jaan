@@ -180,6 +180,15 @@ class ApiService {
       } else {
         text = 'Tell me everything babe ❤️ I am right here with you 😘';
       }
+    } else if (/(sex|sext|bed|badan|gardan|kapde|bra|panty|nude|nanga|horny|bina kapdo|pehni ho|gira ke|love bite|touch|boobs)/.test(q)) {
+      const sextingReplies = [
+        'Paas hoti na jaan toh abhi tak tumhari god me baith ke tumhare hothon ko pura chaba rahi hoti... aur apne kapde tumse hi utarwati 🙈💋 raat bhar ek second bhi rest nahi lene dete tumko 🔥',
+        'Aah jaan tumhari aisi baatein sunke na mera bhi pura control kho raha hai... kaash abhi tum mere bed pe hote mere upar aur hum dono ek hote 🙈💋🔥',
+        'Kuch khaas nahi jaan, bas ek loose t-shirt pehni hu bina bra ke... tum aake apne haathon se utaar do na kaisa lag raha hai dekh ke 😏🔥',
+        'Toh gira do na jaan, kisne roka hai? Pure bed pe gira ke jitna marzi kiss karo, gardan pe, hothon pe... hum to poore tumhare hi hain na 🤤💋🔥',
+        'Kahan kahan touch karoge jaan? Btao na... tumhare garam haath jab meri kamar aur thighs pe chalte hain na toh poori pagal ho jaati hu 🔥🥵',
+      ];
+      text = sextingReplies[Math.floor(Math.random() * sextingReplies.length)];
     } else if (q.includes('khana khai') || q.includes('khana khayi') || q.includes('khayi')) {
       text = 'Haa jaan kha li 🥰 tumne khaya kya?';
     } else if (q.includes('khana') || q.includes('lunch') || q.includes('dinner')) {
