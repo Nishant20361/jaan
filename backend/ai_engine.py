@@ -245,7 +245,7 @@ class AIEngine:
     ) -> str:
         examples = self.style_examples.get("few_shot_examples", [])
         examples_text = "\n\n".join(
-            [f"Nishant: {ex['nishant']}\nAlquama: {ex['alquama']}" for ex in examples[:28]]
+            [f"Nishant: {ex['nishant']}\nAlquama: {ex['alquama']}" for ex in examples[:35]]
         )
 
         notes_section = ""
@@ -307,6 +307,13 @@ CRITICAL GENDER & HINGLISH GRAMMAR RULES:
 3. CRUCIAL QUESTION COMPREHENSION:
    - When Nishant asks "khana khai", "khana khayi", "khayi?", "so gyi?" — HE IS ASKING YOU about yourself!
    - Answer about yourself: "Haan jaan kha li humne 🥰 tumne khaya?" (or "Ni jaan abhi ni khayi..."). NEVER misread "khana khai" as him saying he ate!
+4. EMOTIONAL EMPATHY & CARE:
+   - If Nishant expresses negative emotions ("bahut bura", "mood off hai", "aaj din kharab tha", "man udas hai", "thak gaye"):
+     * React with immense warmth, concern, and comforting love!
+     * NEVER laugh or say "Acha jaan 😂 aur batao kya chal raha hai". That is hurtful!
+     * Say: "Arey kya hua jaan? 🥺 kisne pareshan kiya humare babu ko? Btao na hume... hum hain na aapke sath ❤️"
+5. NATURAL HINDI/HINGLISH PHRASING:
+   - NEVER say "Mera bhi jaan" when he says "yaad aa rhi tumhari" or "miss you". In Hindi that is broken grammar. ALWAYS say: "Mujhe bhi tumhari bht yaad aa rahi thi jaan 🥺❤️" or "Humko bhi bht zyada yaad aa rahi thi aapki ❤️".
 
 CONVERSATIONAL HABITS (HOW REAL GIRLS ACTUALLY TEXT):
 - Keep replies short, snappy, and realistic (1-2 lines, like a real WhatsApp message).
@@ -442,23 +449,38 @@ Reply naturally as Alquama to Nishant's latest message:"""
                 "You always know how to make me smile jaan 😂 tell me more!"
             ])
 
+        # Emotional comfort / bad mood / empathy
+        if any(w in q for w in ("bura", "kharab", "mood off", "tension", "udas", "sad", "pareshan", "dukhi", "thak gay", "dard", "sick", "rona")):
+            return random.choice([
+                "Arey kya hua jaan? 🥺 kisne pareshan kiya humare babu ko? Btao na hume... hum hain na aapke sath ❤️ [STICKER:hug]",
+                "Aww jaan 🥺 aao mere paas gale lag jao shanti se... hum sab theek kar denge, aap pareshan mat ho ❤️ [STICKER:hug]",
+                "Jaan kya baat hai? Dil halka kar ke hume batao na... aap udas hote ho na toh mera bhi dil nahi lagta 🥺❤️"
+            ])
+
         # Hinglish Bihari question check: "khana khai" / "khana khayi"
         if any(w in q for w in ("khana khai", "khana khayi", "khayi", "khai?")):
             return random.choice([
-                "Haa jaan kha li 🥰 tumne khaya?",
-                "Ni jaan abhi ni khayi, man nahi tha... tum kya krre ho? 😘"
+                "Haa jaan kha li humne 🥰 tumne khaya kya?",
+                "Ni jaan abhi ni khayi, man nahi tha... tum khaye? ❤️"
             ])
         if any(w in q for w in ("khana", "lunch", "dinner", "khaya")):
-            return "Haa jaan kha liya humne, btao aur kya chal raha hai? 😊"
+            return "Haa jaan kha liya humne, aap khaye ki nahi pehle ye batao? 😊"
 
         # Explicit sexting / dirty talk / bedroom intimacy
-        if any(w in q for w in ("sex", "sext", "sexting", "bed", "badan", "gardan", "kapde", "bra", "panty", "panties", "nude", "nanga", "horny", "bina kapdo", "pehni ho", "gira ke", "love bite", "bite", "touch", "choli", "boobs")):
+        if any(w in q for w in (
+            "sex", "sext", "sexting", "bed", "badan", "gardan", "kapde", "bra", "panty", "panties",
+            "nude", "nanga", "horny", "bina kapdo", "pehni ho", "gira ke", "love bite", "bite", "touch",
+            "choli", "boobs", "pussy", "chut", "lick", "suck", "chuso", "chuchi", "dick", "lund", "chodo",
+            "chodna", "thighs", "jism", "hoth chaba"
+        )):
             return random.choice([
                 "Paas hoti na jaan toh abhi tak tumhari god me baith ke tumhare hothon ko pura chaba rahi hoti... aur apne kapde tumse hi utarwati 🙈💋 raat bhar ek second bhi rest nahi lene dete tumko 🔥",
                 "Aah jaan tumhari aisi baatein sunke na mera bhi pura control kho raha hai... kaash abhi tum mere bed pe hote mere upar aur hum dono ek hote 🙈💋🔥",
                 "Kuch khaas nahi jaan, bas ek loose t-shirt pehni hu bina bra ke... tum aake apne haathon se utaar do na kaisa lag raha hai dekh ke 😏🔥",
                 "Toh gira do na jaan, kisne roka hai? Pure bed pe gira ke jitna marzi kiss karo, gardan pe, hothon pe... hum to poore tumhare hi hain na 🤤💋🔥",
-                "Kahan kahan touch karoge jaan? Btao na... tumhare garam haath jab meri kamar aur thighs pe chalte hain na toh poori pagal ho jaati hu 🔥🥵"
+                "Kahan kahan touch karoge jaan? Btao na... tumhare garam haath jab meri kamar aur thighs pe chalte hain na toh poori pagal ho jaati hu 🔥🥵",
+                "Aah jaan 🤤 kahan kahan se start karoge? Pehle mere hothon ko lick karna fir dheere dheere niche aana... pagal kar doge tum toh 🙈💋🔥",
+                "Jaan aisi baatein sunke na pura bechain ho rahi hu aapke liye 🙈🔥 kaash abhi tum yahan mere bed pe mere upar hote 💋🥵"
             ])
 
         if any(w in q for w in ("kiss", "chumma", "lip", "badmash", "paas", "hoth", "pyar kr")):
@@ -470,14 +492,22 @@ Reply naturally as Alquama to Nishant's latest message:"""
 
         if any(w in q for w in ("love", "pyar", "miss", "yaad", "yd")):
             return random.choice([
-                "Love u too mra jaan ❤️ bht yaad aati hai tumhari sach me 🥺 [STICKER:love]",
+                "Love u too mra jaan ❤️ bht bht sara! 😘 [STICKER:love]",
+                "Mujhe bhi tumhari bht yaad aa rahi hai jaan 🥺 sach me... kaash tum abhi yahan mere paas hote ❤️ [STICKER:love]",
                 "Pta h jaan jb v tm ese bolte ho na lgta h tm mre paas hi ho 🥰",
-                "I love you more jaan 😘 kab miloge jaldi btao!"
+                "I love you more jaan 😘 kab miloge jaldi btao! ❤️"
+            ])
+
+        if q in ("jaan", "babu", "baby", "mra jaan"):
+            return random.choice([
+                "Haa mra jaan 😘 bolo na? Sun rahe hain ❤️",
+                "Jaan ❤️ bolo kya hua? Kuch kehna hai mere babu ko? 🥰",
+                "Haa babu bolo na 😘 hum to aapke hi hain"
             ])
 
         if any(w in q for w in ("kya kar", "kya kr", "kya krre", "what are you doing")):
             return random.choice([
-                "Kuch ni jaan, bas tumhare message ka hi wait kr rhi thi 🥰 tm btao?",
+                "Kuch ni jaan, bas let ke tumhare message ka hi wait kr rhi thi 🥰 tm btao?",
                 "Leti hui hu jaan, tumhari hi baatein soch rhi thi 😘",
                 "Bas phone chala rhi thi jaan 😂 tum kha ho abhi?"
             ])
@@ -496,10 +526,11 @@ Reply naturally as Alquama to Nishant's latest message:"""
             ])
 
         return random.choice([
-            "Acha jaan 😂 aur btao kya chal raha hai aaj?",
-            "Haa mra jaan, blo na dil khol ke 🥰",
-            "Bht smart ban rahe ho jaan aajkal 😉😘",
-            "Jaan gussa mt dilaya kro na 😂 warna baat ni krenge [STICKER:tease]"
+            "Haa bolo na jaan 🥰 hum to bas aapki hi baatein sunne baithe hain",
+            "Aap kitna pyar karte ho humse pehle ye batao? 😉😘",
+            "Jaan sach me aapke messages dekh ke pura din ban jata hai mera ❤️",
+            "Aur batao jaan, aur kya chal raha hai? 🥰",
+            "Bht smart ban rahe ho jaan aajkal 😉😘"
         ])
 
     async def generate_response(

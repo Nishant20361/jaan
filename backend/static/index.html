@@ -747,6 +747,8 @@
           </div>
         </div>
         <div class="chat-header-actions">
+          <button class="header-btn" title="Photo Request" onclick="sendQuickPhotoRequest()">📷</button>
+          <button class="header-btn" title="Clear Chat" onclick="clearChatHistory()">🗑️</button>
           <button class="header-btn" title="Settings" onclick="showView('settings')">⚙️</button>
         </div>
       </div>
@@ -1323,6 +1325,12 @@
         pill.style.color = '#ff5252';
         pill.innerText = '✕ Offline';
       }
+    }
+
+    function sendQuickPhotoRequest() {
+      const input = document.getElementById('chat-input');
+      input.value = 'apna ek photo bhejo na jaan dekhna hai';
+      sendMessage();
     }
 
     async function clearChatHistory() {

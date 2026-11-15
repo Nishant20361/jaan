@@ -169,38 +169,44 @@ class ApiService {
       /\b(the|is|are|was|were|have|had|missed|today|tonight|babe|baby|how are you|what are you|love you)\b/.test(q) &&
       !/\b(kya|kr|kar|hai|ho|hu|ni|nhi|tm|tum|hm|hum|khana|khayi|bhejo|btao|yaad)\b/.test(q);
 
-    let text = 'Acha jaan 😂 aur btao kya chal raha hai aaj?';
+    let text = 'Haa bolo na jaan 🥰 hum to bas aapki hi baatein sunne baithe hain';
     if (/\b(photo|phto|pic|selfie)\b/.test(q)) {
       text = isEnglish
         ? 'Network is a little slow right now babe, ask me again in a second 😘'
         : 'Abhi network thoda slow lag rha hai jaan, ek second me phir btao ❤️';
+    } else if (/(bura|kharab|mood off|tension|udas|sad|pareshan|dukhi|thak gay|dard)/.test(q)) {
+      text = 'Arey kya hua jaan? 🥺 kisne pareshan kiya humare babu ko? Btao na hume... hum hain na aapke sath ❤️';
     } else if (isEnglish) {
       if (/(kiss|hug|love|miss)/.test(q)) {
         text = 'I love you so much jaan ❤️ wish you were right here beside me 😘';
       } else {
         text = 'Tell me everything babe ❤️ I am right here with you 😘';
       }
-    } else if (/(sex|sext|bed|badan|gardan|kapde|bra|panty|nude|nanga|horny|bina kapdo|pehni ho|gira ke|love bite|touch|boobs)/.test(q)) {
+    } else if (/(sex|sext|bed|badan|gardan|kapde|bra|panty|panties|nude|nanga|horny|bina kapdo|pehni ho|gira ke|love bite|touch|boobs|pussy|chut|lick|suck|chuso|chuchi|dick|lund|chodo)/.test(q)) {
       const sextingReplies = [
         'Paas hoti na jaan toh abhi tak tumhari god me baith ke tumhare hothon ko pura chaba rahi hoti... aur apne kapde tumse hi utarwati 🙈💋 raat bhar ek second bhi rest nahi lene dete tumko 🔥',
         'Aah jaan tumhari aisi baatein sunke na mera bhi pura control kho raha hai... kaash abhi tum mere bed pe hote mere upar aur hum dono ek hote 🙈💋🔥',
         'Kuch khaas nahi jaan, bas ek loose t-shirt pehni hu bina bra ke... tum aake apne haathon se utaar do na kaisa lag raha hai dekh ke 😏🔥',
         'Toh gira do na jaan, kisne roka hai? Pure bed pe gira ke jitna marzi kiss karo, gardan pe, hothon pe... hum to poore tumhare hi hain na 🤤💋🔥',
         'Kahan kahan touch karoge jaan? Btao na... tumhare garam haath jab meri kamar aur thighs pe chalte hain na toh poori pagal ho jaati hu 🔥🥵',
+        'Aah jaan 🤤 kahan kahan se start karoge? Pehle mere hothon ko lick karna fir dheere dheere niche aana... pagal kar doge tum toh 🙈💋🔥',
+        'Jaan aisi baatein sunke na pura bechain ho rahi hu aapke liye 🙈🔥 kaash abhi tum yahan mere bed pe mere upar hote 💋🥵',
       ];
       text = sextingReplies[Math.floor(Math.random() * sextingReplies.length)];
     } else if (q.includes('khana khai') || q.includes('khana khayi') || q.includes('khayi')) {
       text = 'Haa jaan kha li 🥰 tumne khaya kya?';
     } else if (q.includes('khana') || q.includes('lunch') || q.includes('dinner')) {
-      text = 'Haa jaan kha liya humne 🥰 aur btao kya krre ho?';
+      text = 'Haa jaan kha liya humne, aap khaye ki nahi pehle ye batao? 😊';
     } else if (/(kiss|chumma|paas|touch|badmash)/.test(q)) {
       text = 'Mmwaah 😘 paas aao na jaan, bahut yaad aa rhi thi 💕';
     } else if (/(love|pyar|miss|yaad)/.test(q)) {
-      text = 'Love u too mra jaan ❤️ bahut yaad aati hai tumhari 🥺😘';
+      text = 'Mujhe bhi tumhari bht yaad aa rahi hai jaan 🥺 sach me... kaash tum abhi yahan mere paas hote ❤️';
+    } else if (q === 'jaan' || q === 'babu' || q === 'mra jaan') {
+      text = 'Haa mra jaan 😘 bolo na? Sun rahe hain ❤️';
     } else if (/(kya kar|kya kr)/.test(q)) {
-      text = 'Kuch ni jaan, bas tumhara hi wait kr rhi thi 🥰 tum btao?';
-    } else if (/^(hi|hello|hlo|hey)/.test(q)) {
-      text = 'Hlo mra jaan 😘 kha busy the itni der se?';
+      text = 'Kuch ni jaan, bas let ke tumhara hi wait kr rhi thi 🥰 tum btao?';
+    } else if (/^(hi|hello|hlo|hey|suno)/.test(q)) {
+      text = 'Hlo mra jaan 😘 bolo na kya hua?';
     }
 
     return {
