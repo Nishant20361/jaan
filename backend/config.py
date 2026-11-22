@@ -28,7 +28,7 @@ class Settings(BaseModel):
     app_name: str = "Alquama ❤️"
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     groq_model: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
-    temperature: float = 0.78
+    temperature: float = 0.85
     max_tokens: int = 650
     host: str = "0.0.0.0"
     port: int = 8000
