@@ -14,15 +14,16 @@
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20Web-ff3b88?style=for-the-badge" alt="Platform" />
   <img src="https://img.shields.io/badge/Expo-SDK%2051-7928ca?style=for-the-badge&logo=expo&logoColor=white" alt="Expo" />
   <img src="https://img.shields.io/badge/FastAPI-0.163-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Gemini%20AI-Flash%20Lite-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
   <img src="https://img.shields.io/badge/Groq%20AI-qwen3.8--27b-f55036?style=for-the-badge" alt="Groq" />
   <img src="https://img.shields.io/badge/TypeScript-Strict-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
 </p>
 
 <p align="center">
-  <a href="https://expo.dev/artifacts/eas/miTRyDoC_POHW1I0wFy7Jjz4tdlO4sZpdLeJ5YIL5aI.apk">
+  <a href="https://expo.dev/artifacts/eas/PNFeHScGsxMkL1ju0WHXEcCXUbVjkNux3HGcB_Ng_BE.apk">
     <img src="https://img.shields.io/badge/⬇️_Download_Android_APK-v1.0.0-success?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
   </a>
-  <a href="https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/a7da9689-1827-4516-8d77-4e8bb396d282">
+  <a href="https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/8966e73b-df8d-437f-a448-f76b8eab313c">
     <img src="https://img.shields.io/badge/EAS_Build-PASSED-brightgreen?style=for-the-badge&logo=expo" alt="EAS Build" />
   </a>
 </p>
@@ -33,8 +34,8 @@
 
 Install the standalone **Jaan AI** Android app directly on your phone:
 
-* **Direct APK Download**: [jaan-ai-v1.0.0.apk (Direct Expo CDN)](https://expo.dev/artifacts/eas/miTRyDoC_POHW1I0wFy7Jjz4tdlO4sZpdLeJ5YIL5aI.apk)
-* **EAS Build Page**: [Expo Build Details & QR Code](https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/a7da9689-1827-4516-8d77-4e8bb396d282)
+* **Direct APK Download**: [jaan-ai-v1.0.0.apk (Direct Expo CDN)](https://expo.dev/artifacts/eas/PNFeHScGsxMkL1ju0WHXEcCXUbVjkNux3HGcB_Ng_BE.apk)
+* **EAS Build Page**: [Expo Build Details & QR Code](https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/8966e73b-df8d-437f-a448-f76b8eab313c)
 
 > **Installation Note**: On Android, open the downloaded `.apk` file and tap **"Install"**. If prompted, toggle *"Allow from this source"* in Settings to enable standalone APK installation.
 
