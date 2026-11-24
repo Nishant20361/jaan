@@ -13,7 +13,8 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EAS_NO_FROZEN_LOCKFILE": "1"
+        "EAS_NO_FROZEN_LOCKFILE": "1",
+        "EAS_BUILD_SKIP_LOCKFILE_CHECK": "1"
       },
       "android": {
         "buildType": "apk"
