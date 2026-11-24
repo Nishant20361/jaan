@@ -13,6 +13,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -22,6 +23,7 @@ const { width } = Dimensions.get('window');
 
 const QUICK_EMOJIS = ['😘', '🥰', '😂', '🤪', '😉', '❤️', '💕', '💋', '🌹', '🥺', '😏', '🙈'];
 const LOCAL_AVATAR_MODAL_KEY = '__LOCAL_ALQUAMA_DP__';
+const LOCAL_CHAT_STORAGE_KEY = '@alquama_local_chat_history_v1';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -41,75 +43,97 @@ export default function ChatScreen() {
   const typingDot2 = useRef(new Animated.Value(0)).current;
   const typingDot3 = useRef(new Animated.Value(0)).current;
 
-  // Load history or varied greeting + stickers
+  // Load offline phone storage history first, then sync server history + stickers
   useEffect(() => {
     let mounted = true;
 
     async function init() {
+      // 1. Instantly load chats from local phone storage (offline first)
+      try {
+        const cachedLocal = await AsyncStorage.getItem(LOCAL_CHAT_STORAGE_KEY);
+        if (cachedLocal && mounted) {
+          const parsed = JSON.parse(cachedLocal);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+          }
+        }
+      } catch (e) {
+        console.log('[PhoneStorage] Error reading offline chat cache:', e);
+      }
+
       api.getStickers().then((stickers) => {
         if (mounted) setAvailableStickers(stickers);
       });
 
-      const history = await api.getHistory('default', 100);
-      if (!mounted) return;
+      // 2. Fetch server history and persist to phone storage
+      try {
+        const history = await api.getHistory('default', 100);
+        if (!mounted) return;
 
-      if (history && history.length > 0) {
-        let lastUserIdx = -1;
-        history.forEach((m: any, idx: number) => {
-          if (m.role === 'user') lastUserIdx = idx;
-        });
+        if (history && history.length > 0) {
+          let lastUserIdx = -1;
+          history.forEach((m: any, idx: number) => {
+            if (m.role === 'user') lastUserIdx = idx;
+          });
 
-        const formatted: MessageItem[] = [];
-        history.forEach((m: any, idx: number) => {
-          const timeStr = m.created_at
-            ? new Date(m.created_at + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const role = m.role === 'user' ? 'user' : 'companion';
-          const cleanContent = m.content === '[Sent Sticker]' ? '' : (m.content || '');
-          const resolvedMedia = api.resolveMediaUrl(m.media_uri);
-          const isLastAnsweredUser = idx === lastUserIdx && lastUserIdx < history.length - 1;
+          const formatted: MessageItem[] = [];
+          history.forEach((m: any, idx: number) => {
+            const timeStr = m.created_at
+              ? new Date(m.created_at + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const role = m.role === 'user' ? 'user' : 'companion';
+            const cleanContent = m.content === '[Sent Sticker]' ? '' : (m.content || '');
+            const resolvedMedia = api.resolveMediaUrl(m.media_uri);
+            const isLastAnsweredUser = idx === lastUserIdx && lastUserIdx < history.length - 1;
 
-          if (m.media_type === 'sticker' && resolvedMedia && cleanContent) {
-            formatted.push({
-              id: `hist-${m.id}-txt`,
-              role,
-              content: cleanContent,
-              timestamp: timeStr,
-            });
-            formatted.push({
-              id: `hist-${m.id}-stk`,
-              role,
-              content: '',
-              media_uri: resolvedMedia,
-              media_type: 'sticker',
-              timestamp: timeStr,
-              receipt: isLastAnsweredUser ? 'seen' : undefined,
-            });
-          } else {
-            formatted.push({
-              id: `hist-${m.id}`,
-              role,
-              content: cleanContent,
-              media_uri: resolvedMedia,
-              media_type: m.media_type || undefined,
-              timestamp: timeStr,
-              receipt: isLastAnsweredUser ? 'seen' : undefined,
-            });
-          }
-        });
-        setMessages(formatted);
-        return;
+            if (m.media_type === 'sticker' && resolvedMedia && cleanContent) {
+              formatted.push({
+                id: `hist-${m.id}-txt`,
+                role,
+                content: cleanContent,
+                timestamp: timeStr,
+              });
+              formatted.push({
+                id: `hist-${m.id}-stk`,
+                role,
+                content: '',
+                media_uri: resolvedMedia,
+                media_type: 'sticker',
+                timestamp: timeStr,
+                receipt: isLastAnsweredUser ? 'seen' : undefined,
+              });
+            } else {
+              formatted.push({
+                id: `hist-${m.id}`,
+                role,
+                content: cleanContent,
+                media_uri: resolvedMedia,
+                media_type: m.media_type || undefined,
+                timestamp: timeStr,
+                receipt: isLastAnsweredUser ? 'seen' : undefined,
+              });
+            }
+          });
+          setMessages(formatted);
+          AsyncStorage.setItem(LOCAL_CHAT_STORAGE_KEY, JSON.stringify(formatted)).catch(() => {});
+          return;
+        }
+      } catch (e) {
+        console.log('[PhoneStorage] Network offline, using local phone storage:', e);
       }
 
-      const greetingRes = await api.getGreeting();
-      if (!mounted) return;
-      const initialGreeting: MessageItem = {
-        id: 'init-1',
-        role: 'companion',
-        content: greetingRes?.greeting || 'Hlo jaan 😘 kya haal hai aaj?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages([initialGreeting]);
+      // If no local and no server history, show initial greeting
+      if (mounted) {
+        setMessages((prev) => {
+          if (prev.length > 0) return prev;
+          return [{
+            id: 'init-1',
+            role: 'companion',
+            content: 'Hlo jaan 😘 kya haal hai aaj?',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }];
+        });
+      }
     }
 
     init();
@@ -117,6 +141,13 @@ export default function ChatScreen() {
       mounted = false;
     };
   }, []);
+
+  // Auto-save any new messages to phone local storage
+  useEffect(() => {
+    if (messages.length > 0) {
+      AsyncStorage.setItem(LOCAL_CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-150))).catch(() => {});
+    }
+  }, [messages]);
 
   // Typing dots animation
   useEffect(() => {

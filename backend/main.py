@@ -90,12 +90,14 @@ class SettingsUpdate(BaseModel):
 # Health & Status Endpoint
 @app.get("/api/health")
 def get_health():
-    api_key_configured = bool(settings.groq_api_key or os.getenv("GROQ_API_KEY"))
+    groq_configured = bool(settings.groq_api_key or os.getenv("GROQ_API_KEY"))
+    gemini_configured = bool(settings.gemini_api_key or os.getenv("GEMINI_API_KEY"))
     return {
         "status": "online",
         "app_name": "Alquama ❤️",
-        "groq_configured": api_key_configured,
-        "default_model": settings.groq_model,
+        "gemini_configured": gemini_configured,
+        "groq_configured": groq_configured,
+        "default_model": settings.gemini_model if gemini_configured else settings.groq_model,
         "total_historical_messages": len(rag_engine.messages),
         "total_conversation_chunks": len(rag_engine.chunks),
         "timestamp": datetime.utcnow().isoformat()

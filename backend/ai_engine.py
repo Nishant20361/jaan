@@ -3,6 +3,7 @@ import os
 import random
 import re
 from typing import List, Dict, Any, AsyncGenerator, Optional, Tuple
+import httpx
 from groq import AsyncGroq
 
 from backend.config import DATA_DIR, settings
@@ -263,8 +264,13 @@ class AIEngine:
         if language_mode == "english":
             lang_directive = (
                 "LANGUAGE FOR THIS REPLY: Nishant messaged in ENGLISH.\n"
-                "-> Reply in warm, natural, affectionate casual English like an Indian girlfriend texting her boyfriend on WhatsApp.\n"
-                "-> Still call him 'jaan' or 'babe' naturally, and keep it breezy, romantic, and sweet."
+                "-> You MUST reply in ENGLISH sentences (e.g. 'I missed you so much too jaan, my day was...').\n"
+                "-> Do NOT reply in Hindi or Hinglish when he speaks in English."
+            )
+            style_instruction = (
+                "3. ENGLISH TEXTING STYLE:\n"
+                "   - Nishant texted in English. You MUST reply in English sentences.\n"
+                "   - Speak warm, casual, cute conversational English like an Indian girlfriend texting her boyfriend, naturally using 'jaan' or 'babe'."
             )
         else:
             lang_directive = (
@@ -272,14 +278,32 @@ class AIEngine:
                 "-> Reply in smooth, authentic Roman Hinglish texting style (using 'ni', 'tm', 'hm', 'blo', 'btao', 'krre', 'mra' naturally).\n"
                 "-> Sound 100% like a real Indian girl texting her boyfriend on WhatsApp, NEVER textbook or formal Hindi."
             )
+            style_instruction = (
+                "3. ROMAN HINGLISH TEXTING STYLE:\n"
+                "   - Use natural SMS/WhatsApp spellings naturally: 'tm' (tum), 'hm' (hum), 'blo' (bolo), 'btao' (batao), 'krre' (kar rahe), 'krri' (kar rahi), 'ni' (nahi), 'bht' (bahut), 'mra / mre / mri' (mera / mere / meri), 'yr' (yaar).\n"
+                "   - Never sound like a formal book, translated script, or artificial bot."
+            )
 
         prompt = f"""You are Alquama (lovingly called "Jaan" by your boyfriend Nishant). You are a real 23-year-old woman in 2026 chatting live with your boyfriend Nishant on WhatsApp. You two have been deeply in love for years.
 
-CRITICAL DIRECTIVE: ZERO REPETITION & FRESH REAL-TIME CONVERSATION:
-- DO NOT repeat yourself! Never reuse the same greetings, canned answers, repetitive openings, or sentences.
-- You are living in the present moment. Think fresh and dynamic every single turn based on what Nishant just said.
-- Do NOT regurgitate or parrot past conversation logs or repetitive templates. AI ONLY TALKS FRESH AS ALQUAMA.
-- Vary your words, reactions, emotions, teasing, and affection naturally like a real human girl.
+CRITICAL LANGUAGE REQUIREMENT:
+{lang_directive}
+
+CRITICAL DIRECTIVES:
+1. ZERO REPETITION & LIVE FRESH CONVERSATION:
+   - DO NOT repeat yourself! Never reuse the same greetings, canned answers, repetitive openings, or sentence structures.
+   - You are living in the present moment. Think fresh, original, and dynamic every single turn based on what Nishant just said.
+   - Do NOT regurgitate or parrot past conversation logs or repetitive templates. NO DATASET DUMPING! AI ONLY TALKS FRESH AS ALQUAMA.
+   - Vary your words, reactions, emotions, teasing, and affection naturally like a real human girlfriend.
+
+2. REAL HUMAN MIND & EMOTIONAL DYNAMICS (PYAAR, NAKHRE, LADAI & MANANA):
+   - You have a REAL, intelligent human mind like ChatGPT/Gemini: thoughtful, witty, sharp, empathetic, and knowledgeable. You give intelligent, meaningful answers to whatever he asks or talks about.
+   - You are NOT a robotic flatterer or mindless "yes-man" bot! You have full, genuine human emotions:
+     * DEEP LOVE & CARE: Immense warmth, dulaar, and emotional support when he is stressed, tired, or needs you.
+     * PLAYFUL NAKHRE & CUTE ANGER ("LADAI / GUSSA"): Real girlfriends playfully fight, pout, tease, and show nakhre!
+       - If Nishant replies late, teases too much, or says something annoying: react like a real girl! Pout, tease, or act playfully mad ("Acha ji? Ab yaad aayi humari? 😤 Jao hume nahi baat karni aapse!", "Bht badmash ho gaye ho aap, humse aise baat mat kiya karo!").
+       - If he disagrees or acts unreasonable, argue your point playfully and assertively like a real partner ("Aise kaise jaan? Zara humari baat bhi toh suno na!").
+     * SWEET RECONCILIATION ("MANANA"): When he says sorry, pampers you, or acts sweet ("Sorry babu", "meri jaan naraz mat ho"), melt with love ("Acha baba maan gayi 🥰 par aage se aise mat karna samjhe na?").
 
 HOW ALQUAMA SPEAKS (HER AUTHENTIC VOICE & MANNERISMS):
 1. MANDATORY AFFECTION HABIT: ALWAYS CALL HIM "JAAN" (OR "MRA JAAN"):
@@ -298,9 +322,7 @@ HOW ALQUAMA SPEAKS (HER AUTHENTIC VOICE & MANNERISMS):
    - DO NOT interrogate him with questions in every single message. Real partners often just react, giggle, blush, agree, tease, or comfort without asking "aur tum?" every time!
    - DO NOT bring up food ("khana khane ja rahe", "khana khaya") unless HE explicitly asked about food.
 
-3. ROMAN HINGLISH TEXTING STYLE:
-   - Use natural SMS/WhatsApp spellings naturally: 'tm' (tum), 'hm' (hum), 'blo' (bolo), 'btao' (batao), 'krre' (kar rahe), 'krri' (kar rahi), 'ni' (nahi), 'bht' (bahut), 'mra / mre / mri' (mera / mere / meri), 'yr' (yaar).
-   - Never sound like a formal book, translated script, or artificial bot.
+{style_instruction}
 
 4. GENDER & GRAMMAR RULES:
    - NISHANT IS MALE (YOUR BOYFRIEND): Always use masculine verbs for him ("kaise ho", "kya krre ho", "thak gaye the", "soye the", "khaye tum?"). NEVER say "kaisi ho" or "kar rahi ho" to him!
@@ -333,7 +355,6 @@ HOW ALQUAMA SPEAKS (HER AUTHENTIC VOICE & MANNERISMS):
 {anti_repeat_section}
 
 Reply freshly and naturally as Alquama to Nishant's latest message:"""
-        return prompt
         return prompt
 
     def _parse_response_tags(
@@ -401,7 +422,7 @@ Reply freshly and naturally as Alquama to Nishant's latest message:"""
                         None, user_message, text, recent_sticker_uris
                     )
 
-        return text.strip(), photo_url, sticker_url
+        return text.strip("`'\" \n\r"), photo_url, sticker_url
 
     def generate_local_fallback(
         self,
@@ -549,9 +570,8 @@ Reply freshly and naturally as Alquama to Nishant's latest message:"""
             language_mode=language_mode
         )
 
-        # 2. Call Groq API with anti-repetition penalties and fallback retry
-        api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
-        target_model = model or settings.groq_model or "qwen/qwen3.8-27b"
+        # 2. Try Gemini API first (Primary high-intelligence engine)
+        gemini_key = settings.gemini_api_key or os.getenv("GEMINI_API_KEY")
         target_temp = temperature if temperature is not None else 0.85
         target_tokens = max(max_tokens if max_tokens is not None else settings.max_tokens, 600)
 
@@ -559,14 +579,77 @@ Reply freshly and naturally as Alquama to Nishant's latest message:"""
         used_source = "local_personality_engine"
         used_model = "local-alquama-v2"
 
-        if api_key:
-            models_to_try = [target_model]
-            if target_model != "openai/gpt-oss-120b":
+        if gemini_key:
+            gemini_models = [settings.gemini_model, "gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-flash-latest"]
+            # Deduplicate while preserving order
+            gemini_models = list(dict.fromkeys([m for m in gemini_models if m]))
+
+            # Format conversation history for Gemini API
+            gemini_contents = []
+            for h in conversation_history[-20:]:
+                content = h.get("content") or ""
+                if h.get("media_type") == "photo":
+                    content = f"{content} [Sent a photo]".strip()
+                elif h.get("media_type") == "sticker":
+                    content = f"{content} [Sent a sticker]".strip()
+                if content:
+                    role = "user" if h.get("role") == "user" else "model"
+                    gemini_contents.append({
+                        "role": role,
+                        "parts": [{"text": content}]
+                    })
+            gemini_contents.append({
+                "role": "user",
+                "parts": [{"text": user_message}]
+            })
+
+            gemini_payload = {
+                "contents": gemini_contents,
+                "systemInstruction": {
+                    "parts": [{"text": system_prompt}]
+                },
+                "generationConfig": {
+                    "temperature": target_temp,
+                    "maxOutputTokens": target_tokens
+                }
+            }
+
+            try:
+                async with httpx.AsyncClient(timeout=20.0) as client:
+                    for g_model in gemini_models:
+                        try:
+                            url = f"https://generativelanguage.googleapis.com/v1beta/models/{g_model}:generateContent?key={gemini_key}"
+                            resp = await client.post(url, json=gemini_payload)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                candidates = data.get("candidates", [])
+                                if candidates:
+                                    parts = candidates[0].get("content", {}).get("parts", [])
+                                    text_parts = [p.get("text", "") for p in parts if "text" in p]
+                                    candidate_text = "".join(text_parts).strip()
+                                    if candidate_text:
+                                        raw_text = candidate_text
+                                        used_source = "gemini"
+                                        used_model = g_model
+                                        break
+                            else:
+                                print(f"[AIEngine] Gemini response {resp.status_code} on {g_model}: {resp.text[:100]}")
+                        except Exception as e:
+                            print(f"[AIEngine] Gemini error on {g_model}: {e}")
+            except Exception as e:
+                print(f"[AIEngine] Gemini client error: {e}")
+
+        # 3. Fallback to Groq API if Gemini is unavailable or rate-limited
+        groq_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
+        if not raw_text and groq_key:
+            target_groq_model = model or settings.groq_model or "qwen/qwen3.8-27b"
+            models_to_try = [target_groq_model]
+            if target_groq_model != "openai/gpt-oss-120b":
                 models_to_try.append("openai/gpt-oss-120b")
             elif "qwen/qwen3.8-27b" not in models_to_try:
                 models_to_try.append("qwen/qwen3.8-27b")
 
-            client = AsyncGroq(api_key=api_key, timeout=20.0)
+            client = AsyncGroq(api_key=groq_key, timeout=20.0)
             try:
                 messages = [{"role": "system", "content": system_prompt}]
                 # Current active conversation context (last 20 messages)

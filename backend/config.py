@@ -26,6 +26,8 @@ load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 class Settings(BaseModel):
     app_name: str = "Alquama ❤️"
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     groq_model: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     temperature: float = 0.85
