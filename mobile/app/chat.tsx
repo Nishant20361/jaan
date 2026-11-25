@@ -229,7 +229,8 @@ export default function ChatScreen() {
         undefined,
         undefined,
         stickerRelativeUrl || undefined,
-        stickerRelativeUrl ? 'sticker' : undefined
+        stickerRelativeUrl ? 'sticker' : undefined,
+        messages
       );
 
       // Simulate realistic reading pause -> "✓✓ Seen" -> "typing..."

@@ -13,37 +13,63 @@ import {
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { api } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api, DEFAULT_GEMINI_KEY, DEFAULT_GEMINI_MODEL } from '../services/api';
+
+const LOCAL_CHAT_STORAGE_KEY = '@jaan_chat_history';
 
 export default function SettingsScreen() {
   const router = useRouter();
 
+  const [geminiKey, setGeminiKey] = useState(DEFAULT_GEMINI_KEY);
+  const [selectedGeminiModel, setSelectedGeminiModel] = useState(DEFAULT_GEMINI_MODEL);
+  const [temperature, setTemperature] = useState('0.85');
   const [backendUrl, setBackendUrl] = useState(api.getBaseUrl());
-  const [groqKey, setGroqKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('qwen/qwen3.8-27b');
-  const [temperature, setTemperature] = useState('0.78');
-  const [responseLength, setResponseLength] = useState('Medium');
-  const [hinglishStyle, setHinglishStyle] = useState('Natural');
 
-  const [isTesting, setIsTesting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+  const [isTestingGemini, setIsTestingGemini] = useState(false);
+  const [geminiStatus, setGeminiStatus] = useState<{ status: 'idle' | 'success' | 'failed'; msg?: string }>({
+    status: 'idle',
+  });
+
+  const [isTestingServer, setIsTestingServer] = useState(false);
+  const [serverStatus, setServerStatus] = useState<'idle' | 'success' | 'failed'>('idle');
 
   useEffect(() => {
-    api.getSettings().then((s) => {
-      if (s) {
-        if (s.groq_model) setSelectedModel(s.groq_model);
-        if (s.temperature) setTemperature(s.temperature.toString());
-      }
-    });
+    async function load() {
+      await api.initSettings();
+      setGeminiKey(api.getGeminiApiKey());
+      setSelectedGeminiModel(api.getGeminiModel());
+      setTemperature(api.getTemperature().toString());
+      setBackendUrl(api.getBaseUrl());
+    }
+    load();
   }, []);
 
-  const handleTestConnection = async () => {
-    setIsTesting(true);
-    setConnectionStatus('idle');
+  const handleTestGemini = async () => {
+    setIsTestingGemini(true);
+    setGeminiStatus({ status: 'idle' });
+    const res = await api.testGeminiConnection(geminiKey, selectedGeminiModel);
+    setIsTestingGemini(false);
+    if (res.ok) {
+      setGeminiStatus({ status: 'success', msg: res.message });
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (e) {}
+    } else {
+      setGeminiStatus({ status: 'failed', msg: res.message });
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      } catch (e) {}
+    }
+  };
+
+  const handleTestServer = async () => {
+    setIsTestingServer(true);
+    setServerStatus('idle');
     api.setBaseUrl(backendUrl);
     const ok = await api.checkHealth();
-    setIsTesting(false);
-    setConnectionStatus(ok ? 'success' : 'failed');
+    setIsTestingServer(false);
+    setServerStatus(ok ? 'success' : 'failed');
     try {
       if (ok) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -54,36 +80,33 @@ export default function SettingsScreen() {
   };
 
   const handleSaveSettings = async () => {
+    api.setGeminiApiKey(geminiKey);
+    api.setGeminiModel(selectedGeminiModel);
+    api.setTemperature(parseFloat(temperature) || 0.85);
     api.setBaseUrl(backendUrl);
-    const payload: any = {
-      groq_model: selectedModel,
-      temperature: parseFloat(temperature) || 0.78,
-    };
-    if (groqKey.trim()) {
-      payload.groq_api_key = groqKey.trim();
-    }
-    const res = await api.updateSettings(payload);
+
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {}
-    Alert.alert('Settings Saved', 'Your preferences have been updated ❤️');
+    Alert.alert('Settings Saved ❤️', 'Alquama AI settings have been updated successfully.');
   };
 
   const handleClearHistory = () => {
     Alert.alert(
-      'Clear Chat',
-      'Are you sure you want to start a fresh chat?',
+      'Clear All Messages',
+      'Are you sure you want to delete all saved conversations from this phone?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Clear',
+          text: 'Clear All',
           style: 'destructive',
           onPress: async () => {
-            await api.clearHistory('default');
             try {
+              await AsyncStorage.removeItem(LOCAL_CHAT_STORAGE_KEY);
+              await api.clearHistory('default');
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             } catch (e) {}
-            Alert.alert('Chat Cleared', 'Chat messages have been reset.');
+            Alert.alert('Chat Cleared', 'All messages have been reset.');
           },
         },
       ]
@@ -101,63 +124,104 @@ export default function SettingsScreen() {
         >
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chat Settings ⚙️</Text>
+        <Text style={styles.headerTitle}>Alquama Settings ⚙️</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Section 1: Response Engine */}
+        {/* Section 1: Gemini AI Engine */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Response Engine</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Google Gemini AI Engine</Text>
+            <View style={styles.badgePrimary}>
+              <Text style={styles.badgePrimaryText}>ACTIVE</Text>
+            </View>
+          </View>
           <Text style={styles.sectionSubtitle}>
-            Select model & API configuration.
+            Direct Cloud connection. Works natively on mobile data and Wi-Fi anywhere in the world!
           </Text>
 
+          <Text style={styles.fieldLabel}>Gemini Model</Text>
           <View style={styles.optionsList}>
             {[
-              { id: 'qwen/qwen3.8-27b', label: 'Qwen 3.8 27B (Recommended • Fast & Natural Hinglish)' },
-              { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (Deep Reasoning & Nuance)' },
-              { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Lightweight & Instant)' },
+              {
+                id: 'gemini-flash-lite-latest',
+                label: 'Gemini Flash Lite (Recommended • Ultra Fast & Emotional)',
+              },
+              {
+                id: 'gemini-3.8-flash',
+                label: 'Gemini 3.8 Flash (High Reasoning & Nuance)',
+              },
+              {
+                id: 'gemini-flash-latest',
+                label: 'Gemini Flash Latest (Classic)',
+              },
             ].map((m) => (
               <TouchableOpacity
                 key={m.id}
                 style={[
                   styles.optionCard,
-                  selectedModel === m.id && styles.optionCardActive,
+                  selectedGeminiModel === m.id && styles.optionCardActive,
                 ]}
-                onPress={() => setSelectedModel(m.id)}
+                onPress={() => setSelectedGeminiModel(m.id)}
               >
                 <View style={styles.radioDot}>
-                  {selectedModel === m.id && <View style={styles.radioDotInner} />}
+                  {selectedGeminiModel === m.id && <View style={styles.radioDotInner} />}
                 </View>
                 <Text style={styles.optionText}>{m.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.fieldLabel}>Groq API Key (Optional Override)</Text>
+          <Text style={styles.fieldLabel}>Gemini API Key</Text>
           <TextInput
             style={styles.inputField}
-            placeholder="gsk_... (Stored securely on backend only)"
+            placeholder="Enter Gemini API Key (Saved securely on this phone)"
             placeholderTextColor="#8a739e"
-            value={groqKey}
-            onChangeText={setGroqKey}
-            secureTextEntry
+            value={geminiKey}
+            onChangeText={setGeminiKey}
+            secureTextEntry={false}
+            autoCapitalize="none"
           />
+
+          <View style={styles.testRow}>
+            <TouchableOpacity
+              style={styles.testBtn}
+              onPress={handleTestGemini}
+              disabled={isTestingGemini}
+            >
+              {isTestingGemini ? (
+                <ActivityIndicator color="#ffffff" size="small" />
+              ) : (
+                <Text style={styles.testBtnText}>⚡ Test Gemini AI</Text>
+              )}
+            </TouchableOpacity>
+
+            {geminiStatus.status === 'success' && (
+              <Text style={styles.statusSuccess} numberOfLines={2}>
+                ● Connected & Ready 🚀
+              </Text>
+            )}
+            {geminiStatus.status === 'failed' && (
+              <Text style={styles.statusFailed} numberOfLines={2}>
+                ✕ {geminiStatus.msg || 'Connection Error'}
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Section 2: Mood & Expressiveness */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Mood & Expressiveness</Text>
           <Text style={styles.sectionSubtitle}>
-            Adjust warmth, spontaneity, and playful reply style.
+            Adjust warmth, emotional response dynamics, and playful fights/nakhre.
           </Text>
 
           <Text style={styles.fieldLabel}>Expressiveness (Temperature: {temperature})</Text>
           <View style={styles.pillRow}>
             {[
-              { val: '0.5', label: 'Calm & Sweet (0.5)' },
-              { val: '0.78', label: 'Affectionate (0.78)' },
-              { val: '0.9', label: 'Playful & Flirty (0.9)' },
+              { val: '0.6', label: 'Sweet & Calm (0.6)' },
+              { val: '0.85', label: 'Affectionate & Nakhre (0.85)' },
+              { val: '0.95', label: 'Playful & Sassy (0.95)' },
             ].map((p) => (
               <TouchableOpacity
                 key={p.val}
@@ -178,36 +242,13 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
           </View>
-
-          <Text style={styles.fieldLabel}>Response Cadence</Text>
-          <View style={styles.pillRow}>
-            {['Snappy (1 line)', 'Medium (2-3 lines)', 'Detailed'].map((len) => (
-              <TouchableOpacity
-                key={len}
-                style={[
-                  styles.segmentBtn,
-                  responseLength === len && styles.segmentBtnActive,
-                ]}
-                onPress={() => setResponseLength(len)}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    responseLength === len && styles.segmentTextActive,
-                  ]}
-                >
-                  {len}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
 
-        {/* Section 3: Backend Connectivity */}
+        {/* Section 3: Optional PC Backend Server */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Backend Connection</Text>
+          <Text style={styles.sectionTitle}>Local Backend Server (Optional)</Text>
           <Text style={styles.sectionSubtitle}>
-            FastAPI Server URL running locally or on your LAN.
+            Optional: If you run the backend on your PC, enter its Wi-Fi IP (e.g. http://192.168.1.15:8000). Otherwise, direct Gemini Cloud is used automatically!
           </Text>
 
           <TextInput
@@ -222,30 +263,30 @@ export default function SettingsScreen() {
           <View style={styles.testRow}>
             <TouchableOpacity
               style={styles.testBtn}
-              onPress={handleTestConnection}
-              disabled={isTesting}
+              onPress={handleTestServer}
+              disabled={isTestingServer}
             >
-              {isTesting ? (
+              {isTestingServer ? (
                 <ActivityIndicator color="#ffffff" size="small" />
               ) : (
                 <Text style={styles.testBtnText}>Test Server Connection</Text>
               )}
             </TouchableOpacity>
 
-            {connectionStatus === 'success' && (
+            {serverStatus === 'success' && (
               <Text style={styles.statusSuccess}>● Connected (200 OK)</Text>
             )}
-            {connectionStatus === 'failed' && (
-              <Text style={styles.statusFailed}>✕ Offline / Fallback Active</Text>
+            {serverStatus === 'failed' && (
+              <Text style={styles.statusFailed}>✕ Offline (Using Gemini Cloud)</Text>
             )}
           </View>
         </View>
 
-        {/* Section 4: Data & Privacy */}
+        {/* Section 4: Storage & Reset */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Data & Privacy</Text>
+          <Text style={styles.sectionTitle}>Phone Storage & Reset</Text>
           <Text style={styles.sectionSubtitle}>
-            Your chat stays 100% private and stored locally on your server.
+            Your chats are preserved inside your phone's storage. You can start a completely fresh conversation anytime.
           </Text>
 
           <TouchableOpacity
@@ -253,7 +294,7 @@ export default function SettingsScreen() {
             onPress={handleClearHistory}
             activeOpacity={0.8}
           >
-            <Text style={styles.clearBtnText}>Clear Current Chat</Text>
+            <Text style={styles.clearBtnText}>🗑️ Clear All Saved Chats</Text>
           </TouchableOpacity>
         </View>
 
@@ -267,7 +308,7 @@ export default function SettingsScreen() {
             colors={['#ff3b88', '#e91e63', '#a824e8']}
             style={styles.saveGradient}
           >
-            <Text style={styles.saveBtnText}>Save All Settings</Text>
+            <Text style={styles.saveBtnText}>Save Preferences ❤️</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
@@ -319,11 +360,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 90, 160, 0.2)',
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 4,
+  },
+  badgePrimary: {
+    backgroundColor: 'rgba(0, 230, 118, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#00e676',
+  },
+  badgePrimaryText: {
+    color: '#00e676',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   sectionSubtitle: {
     fontSize: 12,
@@ -383,7 +443,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     color: '#ffffff',
-    fontSize: 13.5,
+    fontSize: 13,
     borderWidth: 1,
     borderColor: 'rgba(255, 100, 170, 0.2)',
   },
@@ -437,11 +497,13 @@ const styles = StyleSheet.create({
     color: '#00e676',
     fontSize: 12,
     fontWeight: '600',
+    flex: 1,
   },
   statusFailed: {
     color: '#ff5252',
     fontSize: 12,
     fontWeight: '600',
+    flex: 1,
   },
   clearBtn: {
     paddingVertical: 12,
@@ -476,4 +538,3 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 });
-
