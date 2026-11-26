@@ -20,10 +20,10 @@
 </p>
 
 <p align="center">
-  <a href="https://expo.dev/artifacts/eas/PNFeHScGsxMkL1ju0WHXEcCXUbVjkNux3HGcB_Ng_BE.apk">
+  <a href="https://expo.dev/artifacts/eas/-VSxshhtfyoNzBWNLbdh2ASmdJoadtErHCiFEXkCNFQ.apk">
     <img src="https://img.shields.io/badge/⬇️_Download_Android_APK-v1.0.0-success?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
   </a>
-  <a href="https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/8966e73b-df8d-437f-a448-f76b8eab313c">
+  <a href="https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/57314785-8bc3-469f-9e02-5f560e312a4c">
     <img src="https://img.shields.io/badge/EAS_Build-PASSED-brightgreen?style=for-the-badge&logo=expo" alt="EAS Build" />
   </a>
 </p>
@@ -34,8 +34,8 @@
 
 Install the standalone **Jaan AI** Android app directly on your phone:
 
-* **Direct APK Download**: [jaan-ai-v1.0.0.apk (Direct Expo CDN)](https://expo.dev/artifacts/eas/PNFeHScGsxMkL1ju0WHXEcCXUbVjkNux3HGcB_Ng_BE.apk)
-* **EAS Build Page**: [Expo Build Details & QR Code](https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/8966e73b-df8d-437f-a448-f76b8eab313c)
+* **Direct APK Download**: [jaan-ai-v1.0.0.apk (Direct Expo CDN)](https://expo.dev/artifacts/eas/-VSxshhtfyoNzBWNLbdh2ASmdJoadtErHCiFEXkCNFQ.apk)
+* **EAS Build Page**: [Expo Build Details & QR Code](https://expo.dev/accounts/nishant20361/projects/jaan-ai/builds/57314785-8bc3-469f-9e02-5f560e312a4c)
 
 > **Installation Note**: On Android, open the downloaded `.apk` file and tap **"Install"**. If prompted, toggle *"Allow from this source"* in Settings to enable standalone APK installation.
 
